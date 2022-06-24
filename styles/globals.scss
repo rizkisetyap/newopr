@@ -1,0 +1,19 @@
+@import url("https://fonts.googleapis.com/css?family=Merriweather|Open+Sans");
+
+body {
+  font-family: "Open Sans", sans-serif;
+  font-size: 1rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: Merriweather, sans-serif;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
