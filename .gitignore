@@ -12,9 +12,10 @@
 /.next/
 /out/
 
+
 # production
 /build
-
+build.zip
 # misc
 .DS_Store
 *.pem
