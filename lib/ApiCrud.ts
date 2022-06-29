@@ -152,6 +152,7 @@ export const handleUpdate = async <T>(data: T, onSuccess: () => void, dispatch: 
 	dispatch(setLoading(true));
 	try {
 		const res = await axios.put(BASE_URL + "/" + endPoint, data);
+		// console.log(res.status);
 		if (res.status === 200) {
 			onSuccess();
 			dispatch(

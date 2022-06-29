@@ -27,15 +27,16 @@ import WorkspacesRoundedIcon from "@mui/icons-material/WorkspacesRounded";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { closeDrawer, openDrawer } from "app/reducers/uiReducer";
 import MuiNavbar from "components/MUI/Navbar";
-import { FC, ReactNode } from "react";
+import React, { FC, ReactNode, useEffect, useState } from "react";
 import LinkItem from "components/MUI/LinkItem";
 import Head from "next/head";
 
-import { ChevronRight, ExpandMore } from "@mui/icons-material";
+import { AdminPanelSettingsRounded, ChevronRight, ExpandMore } from "@mui/icons-material";
 import ListRoundedIcon from "@mui/icons-material/ListRounded";
 import CircleRoundedIcon from "@mui/icons-material/CircleRounded";
 import VideocamRoundedIcon from "@mui/icons-material/VideocamRounded";
 import InsertDriveFileRoundedIcon from "@mui/icons-material/InsertDriveFileRounded";
+import { useSession } from "next-auth/react";
 interface IProps {
 	children: ReactNode;
 	title: string;
@@ -43,7 +44,9 @@ interface IProps {
 
 const AdminLayout: FC<IProps> = ({ children, title }) => {
 	const open = useAppSelector((state) => state.ui.sidebar.open);
+	const { data: session } = useSession();
 	const dispatch = useAppDispatch();
+	const isAdmin = session?.user.accountRole.includes("Admin");
 
 	return (
 		<div className="overflow-x-hidden bg-violet-100">
@@ -73,55 +76,16 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 								</IconButton>
 							</Tooltip>
 						</ListItem>
-						{/* dashboard */}
+						{/* Admin Menu */}
+						<LinkItem Icon={<DashboardIcon />} text="Dasboard" href="/dashboard" />
+						{isAdmin && (
+							<React.Fragment>
+								<LinkItem Icon={<AdminPanelSettingsRounded />} text="Administrator" href="/admin" />
 
-						<LinkItem Icon={<DashboardIcon />} text="Dasboard" href="/admin" />
-						<Accordion elevation={0}>
-							<AccordionSummary
-								expandIcon={<ExpandMore />}
-								aria-controls="panel-content"
-								id="panel-header"
-								className="m-0 bg-gray-100"
-								sx={{
-									m: 0,
-								}}
-							>
-								<Typography className="text-base font-medium" variant="h6">
-									Master Account
-								</Typography>
-							</AccordionSummary>
-							<AccordionDetails
-								sx={{
-									px: 0,
-									pb: 0,
-								}}
-							>
 								<LinkItem Icon={<PersonAddAltRoundedIcon />} text="User Account" href="/admin/account" />
 								<LinkItem Icon={<GroupsIcon />} text="Group" href="/admin/group" />
 								<LinkItem Icon={<WorkspacesRoundedIcon />} text="Posisi" href="/admin/position" />
-							</AccordionDetails>
-						</Accordion>
-						<Accordion elevation={0}>
-							<AccordionSummary
-								expandIcon={<ExpandMore />}
-								aria-controls="panel-content"
-								id="panel-header"
-								className="m-0 bg-gray-100"
-								sx={{
-									m: 0,
-								}}
-							>
-								<Typography className="text-base font-medium" variant="h6">
-									Master Data
-								</Typography>
-							</AccordionSummary>
-							<AccordionDetails
-								sx={{
-									px: 0,
-									pb: 0,
-								}}
-							>
-								{/*  */}
+
 								<LinkItem Icon={<EventAvailableIcon />} text="Event" href="/admin/event" />
 								<LinkItem Icon={<CategoryIcon />} text="Kategori Konten" href="category" />
 								<LinkItem Icon={<ArticleIcon />} text="Konten" href="/admin/content" />
@@ -135,43 +99,27 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 								/>
 								<LinkItem
 									Icon={<CircleRoundedIcon className="h-5 w-5" />}
+									text="Layanan"
+									href="/admin/services"
+								/>
+								<LinkItem
+									Icon={<CircleRoundedIcon className="h-5 w-5" />}
 									text="Zoom"
 									href="/admin/masterzoom"
 								/>
-							</AccordionDetails>
-						</Accordion>
-						<Accordion elevation={0}>
-							<AccordionSummary
-								expandIcon={<ExpandMore />}
-								aria-controls="panel-content"
-								id="panel-header"
-								className="m-0 bg-gray-100"
-								sx={{
-									m: 0,
-								}}
-							>
-								<Typography className="text-base font-medium" variant="h6">
-									Transaksi
-								</Typography>
-							</AccordionSummary>
-							<AccordionDetails
-								sx={{
-									px: 0,
-									pb: 0,
-								}}
-							>
+
 								<LinkItem
 									Icon={<VideocamRoundedIcon className="h-5 w-5" />}
 									text="Zoom Scheduler"
 									href="/admin/zoomby"
 								/>
-								<LinkItem
-									Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
-									text="Document ISO"
-									href="/admin/documentISO"
-								/>
-							</AccordionDetails>
-						</Accordion>
+							</React.Fragment>
+						)}
+						<LinkItem
+							Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
+							text="Document ISO"
+							href="/documentISO"
+						/>
 					</List>
 				</Box>
 			</SwipeableDrawer>

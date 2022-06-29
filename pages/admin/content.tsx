@@ -19,12 +19,12 @@ import {
 } from "@mui/material";
 import AdminLayout from "components/Layout/AdminLayout";
 import KontentTable from "components/MUI/Table/KontentTable";
-import HOC from "components/HOC";
+import HOC from "components/HOC/HOC";
 import { AddCircleRounded, DriveFolderUploadRounded, PhotoCameraBackRounded } from "@mui/icons-material";
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import dynamic from "next/dynamic";
-import { ICategory, IContent, IFallback } from "types/ModelInterface";
+import { FileInfo, FormINIT, ICategory, IContent, IFallback } from "types/ModelInterface";
 import { useFetch } from "data/Api";
 import API from "lib/ApiCrud";
 import { useAppDispatch } from "app/hooks";
@@ -34,21 +34,7 @@ import { GetStaticProps } from "next";
 import axios from "axios";
 import { BASE_URL } from "lib/constants";
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
-type FILE = {
-	name?: string;
-	type?: string;
-	extension?: string;
-	base64str?: string;
-};
 
-type FileInfo = {
-	image: FILE | null;
-	file: FILE | null;
-};
-type FormINIT = {
-	content: ICategory;
-	fileData: FileInfo;
-};
 const Content: FC<{ fallback: IFallback }> = ({ fallback }) => {
 	const [open, setOpen] = useState(false);
 	const { data: contents } = useFetch<IContent[]>("/content/getall");

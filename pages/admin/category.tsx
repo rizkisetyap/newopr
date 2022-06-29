@@ -14,7 +14,7 @@ import {
 import KategoriTable from "components/MUI/Table/KategoryTable";
 import AdminLayout from "components/Layout/AdminLayout";
 import { ChangeEvent, FC, SyntheticEvent, useState } from "react";
-import HOC from "components/HOC";
+import HOC from "components/HOC/HOC";
 import Link from "next/link";
 import { AddCircleRounded } from "@mui/icons-material";
 import { ICategory, IFallback } from "types/ModelInterface";

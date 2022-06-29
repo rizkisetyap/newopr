@@ -4,12 +4,14 @@ import AccountTable from "components/MUI/Table/AccountTable";
 import {
 	Box,
 	Button,
+	Checkbox,
 	Container,
 	Dialog,
 	DialogActions,
 	DialogContent,
 	DialogTitle,
 	FormControl,
+	FormControlLabel,
 	Grid,
 	InputLabel,
 	MenuItem,
@@ -22,18 +24,19 @@ import {
 import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import FileUploadRoundedIcon from "@mui/icons-material/FileUploadRounded";
 import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
-import HOC from "components/HOC";
+import HOC from "components/HOC/HOC";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
-import { IEmploye, IFallback, IGroup, IPosition } from "types/ModelInterface";
+import { IEmploye, IFallback, IGroup, IPosition, IService, RegisterVM } from "types/ModelInterface";
 import { useFetch } from "data/Api";
 import API from "lib/ApiCrud";
 import { useAppDispatch } from "app/hooks";
 import { GetStaticProps } from "next";
 import axios from "axios";
 import { BASE_URL } from "lib/constants";
-import { SWRConfig } from "swr";
+import { SWRConfig, useSWRConfig } from "swr";
+import { useRef } from "react";
 
 interface Props {
 	fallback: IFallback;
@@ -41,6 +44,7 @@ interface Props {
 const Account: FC<Props> = ({ fallback }) => {
 	const [open, setOpen] = useState(false); // * Modal state
 	const { data: employees } = useFetch<IEmploye[]>("/employee");
+	console.log(employees);
 
 	return (
 		<SWRConfig value={{ fallback }}>
@@ -125,34 +129,57 @@ const initForm: IEmploye = {
 	firstName: "",
 	lastName: "",
 	phoneNumber: "",
-	gender: "",
 	dateOfBirth: new Date("1990-01-01T00:00:00"),
 };
 const formLabels = Object.keys(initForm);
 function ModalAdd(props: IModalAdd) {
 	const { open, onClose } = props;
-	const { data: group, error: groupFetchingErr } = useFetch<IGroup[]>("/groups/getall");
+	const { data: group, error: groupFetchingErr } = useFetch<IService[]>("/services");
 	const { data: jabatans, error: jabatansFetchingErr } = useFetch<IPosition[]>("/positions/getall");
 	const isLoadingGroup = !group && !groupFetchingErr;
 	const isLoadingJabatans = !jabatans && !jabatansFetchingErr;
 	const [formData, setFormData] = useState<IEmploye>(initForm);
 	const dispatch = useAppDispatch();
+	const [isAdmin, setIsAdmin] = useState(false);
+	const [isUser, setIsUser] = useState(true);
+	const [isPeserta, setIsPeserta] = useState(true);
+	const { mutate } = useSWRConfig();
 	const handleInputText = (event: ChangeEvent<HTMLInputElement>) => {
 		setFormData((old) => ({
 			...old,
 			[event.target.name]: event.target.value,
 		}));
 	};
-	const handleInputSelect = (event: SelectChangeEvent<String>) => {
+	const handleInputSelect = (event: SelectChangeEvent<String | number>) => {
 		setFormData((old) => ({
 			...old,
 			[event.target.name]: +event.target.value,
 		}));
 	};
 	const handleSubmit = () => {
-		API.handlePost<IEmploye>(formData, onSubmitSuccess, dispatch, "Employee");
+		if (!isUser && !isAdmin) return alert("Role harus diisi");
+		const roleAdmin = {
+			id: "1",
+			roleName: "Admin",
+		};
+		const roleUser = {
+			id: "2",
+			roleName: "User",
+		};
+		const rolePeserta = {
+			id: "3",
+			roleName: "Peserta",
+		};
+		const roles = [];
+		if (isAdmin) roles.push(roleAdmin);
+		if (isUser) roles.push(roleUser);
+		if (isPeserta) roles.push(rolePeserta);
+		const fullName = formData.firstName + " " + formData.lastName;
+		const data: RegisterVM = { ...formData, roles, fullName };
+		API.handlePost<RegisterVM>(data, onSubmitSuccess, dispatch, "accounts/register");
 	};
 	const onSubmitSuccess = () => {
+		mutate("/employee");
 		setFormData(initForm);
 		onClose();
 	};
@@ -192,7 +219,7 @@ function ModalAdd(props: IModalAdd) {
 								labelId="gender"
 								id="gender-select"
 								name="gender"
-								value={formData?.gender}
+								value={formData?.gender ?? ""}
 								onChange={handleInputSelect}
 							>
 								<MenuItem value="0">Male</MenuItem>
@@ -222,19 +249,19 @@ function ModalAdd(props: IModalAdd) {
 					</Grid>
 					<Grid item xs={12} sm={4}>
 						<FormControl variant="standard" fullWidth size="small" margin="dense">
-							<InputLabel id="kelompok">Kelompok</InputLabel>
+							<InputLabel id="kelompok">Layanan</InputLabel>
 							<Select
 								variant="standard"
 								labelId="kelompok"
 								id="kelompok-select"
-								name="groupId"
-								value={(isLoadingGroup ? 0 : formData?.groupId ?? "") as String}
+								name="serviceId"
+								value={formData?.serviceId ?? ""}
 								onChange={handleInputSelect}
 							>
 								{isLoadingGroup && <MenuItem value={0}>Loading...</MenuItem>}
 								{group?.map((g) => (
-									<MenuItem key={g!.id + g.groupName!} value={g.id}>
-										{g.groupName}
+									<MenuItem key={g!.id} value={g.id}>
+										{g.name} ({g.group?.groupName})
 									</MenuItem>
 								))}
 								{/* <MenuItem value="1">Female</MenuItem> */}
@@ -244,11 +271,63 @@ function ModalAdd(props: IModalAdd) {
 					<Grid item xs={12} sm={4}>
 						<DesktopDatePicker
 							label="Tanggal Lahir"
-							inputFormat="dd/MM/yyyy"
 							value={formData.dateOfBirth}
 							renderInput={(params) => <TextField variant="standard" fullWidth margin="dense" {...params} />}
 							onChange={(date) => setFormData((old) => ({ ...old, dateOfBirth: date! }))}
 						/>
+					</Grid>
+					<Grid item xs={12}>
+						<Typography>Kewenagan Modul</Typography>
+						<div>
+							<FormControlLabel
+								label="Admin"
+								control={
+									<Checkbox
+										checked={isAdmin}
+										onChange={(e) => setIsAdmin(e.target.checked)}
+										inputProps={{
+											"aria-label": "Admin",
+										}}
+										size="medium"
+										sx={{
+											"&.MuiSvgIcon-root": { fontSize: 28 },
+										}}
+									/>
+								}
+							/>
+							<FormControlLabel
+								label="User"
+								control={
+									<Checkbox
+										checked={isUser}
+										onChange={(e) => setIsUser(e.target.checked)}
+										inputProps={{
+											"aria-label": "User",
+										}}
+										size="medium"
+										sx={{
+											"&.MuiSvgIcon-root": { fontSize: 28 },
+										}}
+									/>
+								}
+							/>
+							<FormControlLabel
+								label="Peserta"
+								control={
+									<Checkbox
+										checked={isPeserta}
+										onChange={(e) => setIsPeserta(e.target.checked)}
+										inputProps={{
+											"aria-label": "Peserta",
+										}}
+										size="medium"
+										sx={{
+											"&.MuiSvgIcon-root": { fontSize: 28 },
+										}}
+									/>
+								}
+							/>
+						</div>
 					</Grid>
 				</Grid>
 				{/* <TextField fullWidth margin="dense" label="firs" /> */}

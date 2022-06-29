@@ -48,9 +48,9 @@ export interface IEmploye extends IDate, ITemplate {
 	lastName?: string;
 	phoneNumber: string;
 	gender?: string;
-	groupId?: number;
+	serviceId?: number;
 	positionId?: number;
-	group?: IGroup;
+	service?: IService;
 	position?: IPosition;
 	dateOfBirth?: Date;
 }
@@ -59,8 +59,8 @@ export interface IEvent extends IDate, ITemplate {
 	id?: number;
 	eventName?: string;
 	eventTheme?: string;
-	startDate?: Date;
-	endDate?: Date;
+	startDate?: Date | string;
+	endDate?: Date | string;
 	organizer?: string;
 	location?: string;
 	isActive?: boolean;
@@ -114,10 +114,19 @@ export interface IPresence extends ITemplate {
 	isInternal?: boolean;
 	createDate?: Date;
 }
+export interface EventPresence {
+	id?: number;
+	name?: string;
+	theme?: string;
+	organizer?: string;
+	dateLocation?: string;
+	qrCode: Blob;
+}
 export interface IRegisteredForm extends ITemplate {
 	id?: number;
 	name?: string;
 	service?: IService;
+	serviceId?: number;
 	createDate?: Date;
 	updateDate?: Date;
 }
@@ -131,6 +140,8 @@ export interface IService extends ITemplate {
 	id?: number;
 	name?: string;
 	group?: IGroup;
+	groupId?: number;
+	kategoriService?: number;
 }
 
 export interface IScheduler extends ITemplate {
@@ -175,3 +186,26 @@ export interface ILocation {
 export interface IFallback {
 	[key: string]: any;
 }
+interface IRoles {
+	id: string;
+	roleName: string;
+}
+export interface RegisterVM extends IEmploye {
+	roles: IRoles[];
+	fullName: string;
+}
+export type FILE = {
+	name?: string;
+	type?: string;
+	extension?: string;
+	base64str?: string;
+};
+
+export type FileInfo = {
+	image: FILE | null;
+	file: FILE | null;
+};
+export type FormINIT = {
+	content: ICategory;
+	fileData: FileInfo;
+};

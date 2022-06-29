@@ -23,7 +23,7 @@ const DashboardCard: FC<IProps> = ({ title, count, color, Icon, linkColor, link 
 			<div className={cn("overflow-hidden flex flex-col justify-between cursor-pointer group text-white", color)}>
 				<div className="grid h-32 grid-cols-2 items-center justify-between gap-x-10  py-2 px-3 ">
 					<div className="font-bold space-y-4">
-						<Typography variant="h4" component="div" fontWeight={600}>
+						<Typography variant="h4" component="h6" fontWeight={600}>
 							{count}
 						</Typography>
 						<Typography variant="body1" component="p">

@@ -1,12 +1,16 @@
 import { IconButton, Tooltip } from "@mui/material";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import React, { FC } from "react";
+import { useAppSelector } from "app/hooks";
 
-interface IProps {}
-const EditButton: FC<IProps> = () => {
+interface IProps {
+	onClick: () => void;
+}
+const EditButton: FC<IProps> = ({ onClick }) => {
+	const isDisabled = useAppSelector((s) => s.action.isLoading);
 	return (
 		<Tooltip title="edit">
-			<IconButton component="a" color="primary" aria-label="edit">
+			<IconButton disabled={isDisabled} color="primary" aria-label="edit" onClick={onClick}>
 				<EditRoundedIcon />
 			</IconButton>
 		</Tooltip>

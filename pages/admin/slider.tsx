@@ -16,7 +16,7 @@ import {
 import AdminLayout from "components/Layout/AdminLayout";
 import KontentTable from "components/MUI/Table/KontentTable";
 import SliderTable from "components/MUI/Table/SliderTable";
-import HOC from "components/HOC";
+import HOC from "components/HOC/HOC";
 import Link from "next/link";
 import { AddCircleRounded } from "@mui/icons-material";
 import API from "lib/ApiCrud";

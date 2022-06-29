@@ -20,7 +20,7 @@ import {
 import { GridColDef, GridRenderCellParams, GridValueGetterParams } from "@mui/x-data-grid";
 import { useFetch } from "data/Api";
 import { ChangeEvent, FC, useState } from "react";
-import { IEmploye, IGroup, IPosition } from "types/ModelInterface";
+import { IEmploye, IGroup, IPosition, IService } from "types/ModelInterface";
 import BackdropLoading from "../BackdropLoading";
 import BaseDataGrid from "../BaseDataGrid";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -28,12 +28,13 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
 import API from "lib/ApiCrud";
 import { useAppDispatch } from "app/hooks";
+import { useSWRConfig } from "swr";
+import { ScopedMutator } from "swr/dist/types";
 export const columnsAccount: GridColDef[] = [
 	{
 		field: "npp",
 		headerName: "NPP",
-		minWidth: 150,
-		flex: 1,
+		minWidth: 70,
 	},
 	{
 		field: "fullName",
@@ -57,28 +58,18 @@ export const columnsAccount: GridColDef[] = [
 		},
 	},
 	{
-		field: "kelompok",
-		headerClassName: "Kelompok",
-		minWidth: 125,
+		field: "layanan",
+		headerClassName: "Layanan",
+		flex: 1,
+		minWidth: 225,
 		valueGetter(params: GridValueGetterParams<any, IEmploye>) {
-			return params.row.group?.groupName ?? "-";
+			return params.row.service?.name + " " + "(" + params.row.service?.group?.groupName + ")";
 		},
 	},
 	{
 		field: "phoneNumber",
 		headerName: "No. Telp",
 		minWidth: 150,
-	},
-	{
-		field: "lastUpdate",
-		headerName: "Update Terakhir",
-		minWidth: 200,
-		valueGetter(params: GridValueGetterParams<any, IEmploye>) {
-			return params.row.updateDate;
-		},
-		valueFormatter(params) {
-			return params.value;
-		},
 	},
 	{
 		field: "option",
@@ -89,6 +80,7 @@ export const columnsAccount: GridColDef[] = [
 			const dispatch = useAppDispatch();
 			const [open, setOpen] = useState(false);
 			const [isView, setIsView] = useState(false);
+			const { mutate } = useSWRConfig();
 			const handleOpenModalView = () => {
 				setIsView(true);
 				setOpen(true);
@@ -97,8 +89,11 @@ export const columnsAccount: GridColDef[] = [
 				setIsView(false);
 				setOpen(true);
 			};
+			const onSuccess = () => {
+				mutate("/employee");
+			};
 			const hapus = () => {
-				API.handleSoftDelete(params.row.npp, () => alert("Item deleted"), dispatch, "Employee");
+				API.handleSoftDelete(params.row.npp, onSuccess, dispatch, "Employee");
 			};
 			return (
 				<Box>
@@ -111,7 +106,13 @@ export const columnsAccount: GridColDef[] = [
 					<IconButton onClick={hapus} color="error" aria-label="Hapus">
 						<DeleteRounded />
 					</IconButton>
-					<ModalInfo open={open} data={params.row} onClose={() => setOpen(false)} isView={isView} />
+					<ModalInfo
+						mutate={mutate}
+						open={open}
+						data={params.row}
+						onClose={() => setOpen(false)}
+						isView={isView}
+					/>
 				</Box>
 			);
 		},
@@ -143,29 +144,33 @@ interface IModal {
 	onClose: () => void;
 	data: IEmploye;
 	isView: boolean;
+	mutate: ScopedMutator;
 }
 function ModalInfo(props: IModal) {
 	const dispatch = useAppDispatch();
-	const { data, onClose, open, isView } = props;
+	const { data, onClose, open, isView, mutate } = props;
 	const [formData, setFormData] = useState(data);
 	const { data: jabatans, error: jabatansError } = useFetch<IPosition[]>("/positions/getall");
-	const { data: kelompok, error: kelompokError } = useFetch<IGroup[]>("/groups/getall");
+	const { data: layanan, error: servicesError } = useFetch<IService[]>("/services");
 	const handleInputText = (event: ChangeEvent<HTMLInputElement>) => {
 		setFormData((old) => ({
 			...old,
 			[event.target.name]: event.target.value,
 		}));
 	};
-	const handleInputSelect = (event: SelectChangeEvent<String>) => {
+	const handleInputSelect = (event: SelectChangeEvent<String | number>) => {
 		setFormData((old) => ({
 			...old,
 			[event.target.name]: event.target.value,
 		}));
 	};
 	const onSuccess = () => {
+		mutate("/employee");
 		setTimeout(onClose, 1000);
 	};
 	const handleSaveUpdate = () => {
+		console.log(formData);
+		// return;
 		API.handleUpdate<IEmploye>(formData, onSuccess, dispatch, "Employee");
 	};
 	return (
@@ -249,14 +254,12 @@ function ModalInfo(props: IModal) {
 						<FormControl variant="standard" fullWidth size="small" margin="dense" disabled={isView}>
 							<InputLabel id="jabatan">Jabatan</InputLabel>
 							<Select
-								variant="standard"
 								labelId="jabatan"
 								id="jabatan-select"
 								name="positionId"
-								value={(formData?.positionId ?? "") as String}
+								value={formData.positionId}
 								onChange={handleInputSelect}
 							>
-								<MenuItem value="">--jabatan--</MenuItem>
 								{!jabatansError &&
 									jabatans?.map((jabatan) => (
 										<MenuItem key={jabatan.id} value={jabatan.id}>
@@ -268,28 +271,26 @@ function ModalInfo(props: IModal) {
 					</Grid>
 					<Grid item xs={12} sm={6} md={4}>
 						<FormControl variant="standard" fullWidth margin="dense" size="small" disabled={isView}>
-							<InputLabel id="kelompok">Kelompok</InputLabel>
+							<InputLabel id="kelompok">Layanan</InputLabel>
 							<Select
 								fullWidth
 								margin="dense"
 								variant="standard"
 								labelId="kelompok"
-								name="groupId"
-								value={(formData.groupId ?? "") as String}
+								name="serviceId"
+								value={formData.serviceId ?? ""}
 								onChange={handleInputSelect}
 							>
-								<MenuItem value="">--kelompok--</MenuItem>
-								{!kelompokError &&
-									kelompok?.map((k) => (
-										<MenuItem key={k.id} value={k.id}>
-											{k.groupName}
-										</MenuItem>
-									))}
+								{layanan?.map((k) => (
+									<MenuItem key={k.id} value={k.id}>
+										{k.name} {k.group?.groupName}
+									</MenuItem>
+								))}
 							</Select>
 						</FormControl>
 					</Grid>
 					<Grid item xs={12} sm={6} md={4}>
-						<DesktopDatePicker
+						{/* <DesktopDatePicker
 							disabled={isView}
 							label="Tanggal Lahir"
 							inputFormat="dd/MM/yyy"
@@ -298,6 +299,10 @@ function ModalInfo(props: IModal) {
 								<TextField variant="standard" size="small" margin="dense" fullWidth {...params} />
 							)}
 							onChange={(date) => setFormData((old) => ({ ...old, dateOfBirth: date! }))}
+						/> */}
+						<input
+							type="date"
+							onChange={(e) => setFormData((old) => ({ ...old, dateOfBirth: new Date(e.target.value) }))}
 						/>
 					</Grid>
 				</Grid>

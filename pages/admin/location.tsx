@@ -17,7 +17,7 @@ import { useAppDispatch } from "app/hooks";
 import { IFallback, ILocation } from "types/ModelInterface";
 import AdminLayout from "components/Layout/AdminLayout";
 import OfficeTable from "components/MUI/Table/OfficeLocationTable";
-import HOC from "components/HOC";
+import HOC from "components/HOC/HOC";
 import API from "lib/ApiCrud";
 import { SWRConfig, useSWRConfig } from "swr";
 import { useFetch } from "data/Api";

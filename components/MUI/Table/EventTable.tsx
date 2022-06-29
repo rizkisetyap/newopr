@@ -185,6 +185,8 @@ function ModalForm(props: IModalForm) {
 		setTimeout(onClose, 1000);
 	};
 	const handleSave = () => {
+		console.log(formData);
+		return;
 		API.handleUpdate<IEvent>(formData, onSuccess, dispatch, "events");
 	};
 	return (
@@ -241,12 +243,13 @@ function ModalForm(props: IModalForm) {
 						/>
 					</Grid>
 					<Grid item xs={12} sm={6} md={4}>
-						<DateTimePicker
+						<TextField
+							type="datetime-local"
 							disabled={isView}
 							value={formData.startDate}
 							label="Start date"
-							onChange={(date) => setFormData((old) => ({ ...old, startDate: formatDate(date!) }))}
-							renderInput={(params) => <TextField margin="dense" fullWidth variant="standard" {...params} />}
+							onChange={(e) => setFormData((old) => ({ ...old, startDate: e.target.value }))}
+							// renderInput={(params) => <TextField margin="dense" fullWidth variant="standard" {...params} />}
 						/>
 					</Grid>
 					<Grid item xs={12} sm={6} md={4}>

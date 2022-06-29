@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import EventTable from "components/MUI/Table/EventTable";
 import { ChangeEvent, FC, useState } from "react";
-import HOC from "components/HOC";
+import HOC from "components/HOC/HOC";
 import { AddCircleRounded } from "@mui/icons-material";
 import axios from "axios";
 import { useAppDispatch } from "app/hooks";

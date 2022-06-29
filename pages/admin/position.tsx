@@ -15,7 +15,7 @@ import {
 import AdminLayout from "components/Layout/AdminLayout";
 
 import PosisiTable from "components/MUI/Table/PosisiTable";
-import HOC from "components/HOC";
+import HOC from "components/HOC/HOC";
 import { useAppDispatch } from "app/hooks";
 import { IFallback, IPosition } from "types/ModelInterface";
 import { handlePostPosition } from "lib/ApiPosition";

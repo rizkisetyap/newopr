@@ -1,16 +1,16 @@
 import { useRouter } from "next/router";
 import React from "react";
 import s from "../styles/Error.module.scss";
-const Page404 = () => {
+const Page400 = () => {
 	const router = useRouter();
 	const handleGoBack = (e: React.MouseEvent<HTMLAnchorElement>) => {
 		e.preventDefault();
-		router.push("/");
+		router.back();
 	};
 	return (
 		<div className={s.root}>
 			<div className="transform -translate-y-10">
-				<h1>404 Page not found</h1>
+				<h1>400 BadRequest</h1>
 				<a
 					onClick={handleGoBack}
 					className="cursor-pointer transition-colors hover:text-blue-400 text-md text-center block mt-4 text-blue-500"
@@ -22,4 +22,4 @@ const Page404 = () => {
 	);
 };
 
-export default Page404;
+export default Page400;

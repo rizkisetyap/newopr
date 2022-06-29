@@ -49,7 +49,7 @@ const columns: GridColDef[] = [
 		headerName: "Zoom Account",
 		minWidth: 150,
 		valueGetter(params: GridValueGetterParams<any, IScheduler>) {
-			return params.row.zoom?.name;
+			return params.row.zoomModel?.name;
 		},
 	},
 	{
@@ -83,13 +83,13 @@ const columns: GridColDef[] = [
 		minWidth: 100,
 		renderCell(params: GridRenderCellParams<any, IScheduler>) {
 			const dispatch = useAppDispatch();
-			const { data: zoom } = useFetch<IZoom[]>("/zoom");
-			const { data: status } = useFetch<IZoomStatus[]>("/zoomStatus");
+			const { data: zoom } = useFetch<IZoom[]>("/zoom/getall");
+			const { data: status } = useFetch<IZoomStatus[]>("/zoomStatus/getall");
 			const { data: pic } = useFetch<IEmploye[]>("/employee");
 			const [open, setOpen] = useState(false);
 			const { mutate } = useSWRConfig();
 			const onSuccess = () => {
-				mutate("/zoomScheduler");
+				mutate("/zoomScheduler/getall");
 			};
 			const handleDelete = () => {
 				API.handleDeleteById<IScheduler>(params.row.id!, onSuccess, dispatch, "ZoomScheduler");
@@ -166,7 +166,7 @@ function ModalForm(props: IModalForm) {
 		}));
 	};
 	const onSuccess = () => {
-		mutate("/zoomScheduler");
+		mutate("/zoomScheduler/getall");
 		setTimeout(onClose, 1000);
 	};
 	const handleSave = () => {

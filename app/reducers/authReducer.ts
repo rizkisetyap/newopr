@@ -1,32 +1,38 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { json } from "stream/consumers";
+import { IEmploye } from "types/ModelInterface";
 import type { RootState } from "../store";
 
+export const authInitialState: IAuthState = {
+	user: null,
+};
+export interface User {
+	accountRole: string[];
+	firstName: string;
+	lastName: string;
+	npp: string;
+	jabatan: string;
+	kelompok: string;
+	service: string;
+}
+interface IUserInfo {
+	user: User;
+	token: string;
+}
 export interface IAuthState {
-  isLogin: boolean;
-  user: string | null;
+	user: IEmploye | null;
 }
 
-export const authInitialState: IAuthState = {
-  isLogin: false,
-  user: null,
-};
-
 const authReducer = createSlice({
-  name: "auth",
-  initialState: authInitialState,
-  reducers: {
-    login(state, action: PayloadAction<any>) {
-      state.isLogin = true;
-      state.user = action.payload.userInfo;
-      localStorage.setItem("user", JSON.stringify(action.payload.idToken));
-    },
-    logout(state) {
-      state.isLogin = false;
-      state.user = null;
-      localStorage.removeItem("user");
-    },
-  },
+	name: "auth",
+	initialState: authInitialState,
+	reducers: {
+		login(state, action: PayloadAction<IEmploye>) {
+			state.user = action.payload.user;
+		},
+		logout(state) {
+			state.user = null;
+		},
+	},
 });
 
 export const { login, logout } = authReducer.actions;

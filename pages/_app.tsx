@@ -2,12 +2,25 @@ import "../styles/globals.scss";
 import type { AppProps } from "next/app";
 import { Provider } from "react-redux";
 import { store } from "../app/store";
-function MyApp({ Component, pageProps }: AppProps) {
-  return (
-    <Provider store={store}>
-      <Component {...pageProps} />
-    </Provider>
-  );
+import { SessionProvider } from "next-auth/react";
+import UserPage from "components/HOC/UserPage";
+import { NextComponentType } from "next";
+
+type CustomComponent = NextComponentType & {
+	auth: boolean;
+};
+interface CustomApprops extends AppProps {
+	Component: CustomComponent;
+}
+
+function MyApp({ Component, pageProps }: CustomApprops) {
+	return (
+		<SessionProvider session={pageProps.session} basePath="/newopr/api/auth">
+			<Provider store={store}>
+				<Component {...pageProps} />
+			</Provider>
+		</SessionProvider>
+	);
 }
 
 export default MyApp;

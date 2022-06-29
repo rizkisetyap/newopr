@@ -19,7 +19,7 @@ import {
 import { Box } from "@mui/system";
 import { useAppDispatch } from "app/hooks";
 import { AppDispatch } from "app/store";
-import HOC from "components/HOC";
+import HOC from "components/HOC/HOC";
 import AdminLayout from "components/Layout/AdminLayout";
 import ZoomScheduleTable from "components/MUI/Table/ZoomScheduleTable";
 import { useFetch } from "data/Api";
@@ -43,9 +43,9 @@ interface Props {
 }
 function Zoomby(props: Props) {
 	const [open, setOpen] = useState(false);
-	const { data: schedulers } = useFetch<IScheduler[]>("/zoomScheduler");
-	const { data: zoom } = useFetch<IZoom[]>("/zoom");
-	const { data: status } = useFetch<IZoomStatus[]>("/zoomStatus");
+	const { data: schedulers } = useFetch<IScheduler[]>("/zoomScheduler/getall");
+	const { data: zoom } = useFetch<IZoom[]>("/zoom/getall");
+	const { data: status } = useFetch<IZoomStatus[]>("/zoomStatus/getall");
 	const { data: pic } = useFetch<IEmploye[]>("/employee");
 	const dispatch = useAppDispatch();
 	const { mutate } = useSWRConfig();
@@ -133,7 +133,7 @@ function ModalForm(props: IModalForm) {
 		}));
 	};
 	const onSuccess = () => {
-		mutate("/zoomScheduler");
+		mutate("/zoomScheduler/getall");
 		setFormData(initForm);
 		setTimeout(onClose, 1000);
 	};

@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import AdminLayout from "components/Layout/AdminLayout";
 import GroupTable from "components/MUI/Table/GroupTable";
-import HOC from "components/HOC";
+import HOC from "components/HOC/HOC";
 import { handlePostGroup } from "lib/ApiGroup";
 import { useAppDispatch } from "app/hooks";
 import { AddCircleRounded, AddRounded } from "@mui/icons-material";

@@ -12,7 +12,7 @@ import {
 	DialogActions,
 	DialogContent,
 } from "@mui/material";
-import HOC from "components/HOC";
+import HOC from "components/HOC/HOC";
 import AdminLayout from "components/Layout/AdminLayout";
 import ZoomTable from "components/MUI/Table/ZoomTable";
 import React, { useState } from "react";
