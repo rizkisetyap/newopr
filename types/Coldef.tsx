@@ -38,6 +38,11 @@ export const columnServices: GridColDef[] = [
 		flex: 1,
 	},
 	{
+		field: "shortName",
+		headerName: "Short Name",
+		width: 150,
+	},
+	{
 		field: "kategoriService",
 		headerName: "Jenis Layanan",
 		minWidth: 200,
@@ -49,7 +54,7 @@ export const columnServices: GridColDef[] = [
 		valueFormatter(params: GridValueFormatterParams<number>) {
 			switch (params.value) {
 				case 0:
-					return "Transasksi";
+					return "Transaksi";
 				case 1:
 					return "Aktivitas";
 				default:
@@ -60,7 +65,7 @@ export const columnServices: GridColDef[] = [
 	{
 		field: "group",
 		headerName: "Kelompok",
-		minWidth: 200,
+		minWidth: 100,
 		valueGetter(params: GridValueGetterParams<any, IService>) {
 			return params.row.group?.groupName ?? "-";
 		},
@@ -73,10 +78,10 @@ export const columnServices: GridColDef[] = [
 			const [open, setOpen] = useState(false);
 			const { data: groups } = useFetch<IGroup[]>("/groups/getall");
 			const onSuccess = () => {
-				mutate("/service");
+				mutate("/services");
 			};
 			const hapus = () => {
-				API.handleDeleteById(params.row.id!, onSuccess, dispatch, "service");
+				API.handleDeleteById(params.row.id!, onSuccess, dispatch, "services");
 			};
 			return (
 				<Box>
@@ -109,11 +114,11 @@ function ModalForm(props: ModalForm) {
 	const { mutate } = useSWRConfig();
 
 	const onSuccess = () => {
-		mutate("/service");
+		mutate("/services");
 		setTimeout(onClose, 500);
 	};
 	const handleSave = () => {
-		API.handleUpdate<IService>(formData, onSuccess, dispatch, "service");
+		API.handleUpdate<IService>(formData, onSuccess, dispatch, "services");
 	};
 
 	return (
@@ -166,6 +171,17 @@ function ModalForm(props: ModalForm) {
 								<MenuItem value={2}>Laporan</MenuItem>
 							</Select>
 						</FormControl>
+					</Grid>
+					<Grid item xs={12} sm={6}>
+						<TextField
+							fullWidth
+							value={formData.shortName ?? ""}
+							margin="dense"
+							variant="standard"
+							name="shortName"
+							label="Short Name"
+							onChange={(e) => setFormData((old) => ({ ...old, shortName: e.target.value }))}
+						/>
 					</Grid>
 				</Grid>
 			</DialogContent>

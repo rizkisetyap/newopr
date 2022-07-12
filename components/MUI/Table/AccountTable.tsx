@@ -30,6 +30,8 @@ import API from "lib/ApiCrud";
 import { useAppDispatch } from "app/hooks";
 import { useSWRConfig } from "swr";
 import { ScopedMutator } from "swr/dist/types";
+import { formatDate } from "lib/constants";
+import { DateTimePicker } from "@mui/x-date-pickers";
 export const columnsAccount: GridColDef[] = [
 	{
 		field: "npp",
@@ -169,7 +171,7 @@ function ModalInfo(props: IModal) {
 		setTimeout(onClose, 1000);
 	};
 	const handleSaveUpdate = () => {
-		console.log(formData);
+		// console.log(formData);
 		// return;
 		API.handleUpdate<IEmploye>(formData, onSuccess, dispatch, "Employee");
 	};
@@ -290,20 +292,24 @@ function ModalInfo(props: IModal) {
 						</FormControl>
 					</Grid>
 					<Grid item xs={12} sm={6} md={4}>
-						{/* <DesktopDatePicker
+						<DateTimePicker
 							disabled={isView}
 							label="Tanggal Lahir"
-							inputFormat="dd/MM/yyy"
 							value={formData.dateOfBirth!}
 							renderInput={(params) => (
 								<TextField variant="standard" size="small" margin="dense" fullWidth {...params} />
 							)}
-							onChange={(date) => setFormData((old) => ({ ...old, dateOfBirth: date! }))}
-						/> */}
-						<input
-							type="date"
-							onChange={(e) => setFormData((old) => ({ ...old, dateOfBirth: new Date(e.target.value) }))}
+							onChange={(date) => setFormData((old) => ({ ...old, dateOfBirth: formatDate(date!) }))}
 						/>
+						{/* <TextField
+							type="datetime-local"
+							fullWidth
+							margin="dense"
+							variant="standard"
+							label="Tanggal Lahir"
+							value={formData.dateOfBirth}
+							onChange={(e) => setFormData((old) => ({ ...old, dateOfBirth: e.target.value }))}
+						/> */}
 					</Grid>
 				</Grid>
 			</DialogContent>

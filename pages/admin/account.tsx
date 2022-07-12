@@ -34,9 +34,10 @@ import API from "lib/ApiCrud";
 import { useAppDispatch } from "app/hooks";
 import { GetStaticProps } from "next";
 import axios from "axios";
-import { BASE_URL } from "lib/constants";
+import { BASE_URL, formatDate } from "lib/constants";
 import { SWRConfig, useSWRConfig } from "swr";
 import { useRef } from "react";
+import { DateTimePicker } from "@mui/x-date-pickers";
 
 interface Props {
 	fallback: IFallback;
@@ -269,11 +270,11 @@ function ModalAdd(props: IModalAdd) {
 						</FormControl>
 					</Grid>
 					<Grid item xs={12} sm={4}>
-						<DesktopDatePicker
+						<DateTimePicker
 							label="Tanggal Lahir"
 							value={formData.dateOfBirth}
 							renderInput={(params) => <TextField variant="standard" fullWidth margin="dense" {...params} />}
-							onChange={(date) => setFormData((old) => ({ ...old, dateOfBirth: date! }))}
+							onChange={(date) => setFormData((old) => ({ ...old, dateOfBirth: formatDate(date!) }))}
 						/>
 					</Grid>
 					<Grid item xs={12}>

@@ -46,6 +46,7 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 	const open = useAppSelector((state) => state.ui.sidebar.open);
 	const { data: session } = useSession();
 	const dispatch = useAppDispatch();
+	// const isAdmin = true;
 	const isAdmin = session?.user.accountRole.includes("Admin");
 
 	return (
@@ -81,13 +82,14 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 						{isAdmin && (
 							<React.Fragment>
 								<LinkItem Icon={<AdminPanelSettingsRounded />} text="Administrator" href="/admin" />
+								<LinkItem Icon={<DashboardIcon />} text="List Aplikasi" href="/admin/listAplikasi" />
 
 								<LinkItem Icon={<PersonAddAltRoundedIcon />} text="User Account" href="/admin/account" />
 								<LinkItem Icon={<GroupsIcon />} text="Group" href="/admin/group" />
 								<LinkItem Icon={<WorkspacesRoundedIcon />} text="Posisi" href="/admin/position" />
 
 								<LinkItem Icon={<EventAvailableIcon />} text="Event" href="/admin/event" />
-								<LinkItem Icon={<CategoryIcon />} text="Kategori Konten" href="category" />
+								<LinkItem Icon={<CategoryIcon />} text="Kategori Konten" href="/admin/category" />
 								<LinkItem Icon={<ArticleIcon />} text="Konten" href="/admin/content" />
 								<LinkItem Icon={<SlideshowIcon />} text="Slider" href="/admin/slider" />
 
@@ -120,6 +122,10 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 							text="Document ISO"
 							href="/documentISO"
 						/>
+						<LinkItem Icon={<CircleRoundedIcon />} text="Konten" href="/user/content" />
+						<LinkItem Icon={<CircleRoundedIcon />} text="Event" href="/user/event" />
+						<LinkItem Icon={<CircleRoundedIcon />} text="List Aplikasi OPR" href="/user/listAplikasi" />
+						<LinkItem Icon={<CircleRoundedIcon />} text="Lokasi Kantor" href="/user/lokasi" />
 					</List>
 				</Box>
 			</SwipeableDrawer>

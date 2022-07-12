@@ -1,13 +1,22 @@
 import { Box, Button, FormControl, Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
 import FileInput from "components/Input/FileInput";
-import React from "react";
-import { ICoreISO, IRegisteredForm } from "types/ModelInterface";
+import React, { useState } from "react";
+import { FILE, ICoreISO, IRegisteredForm, ISupportISO } from "types/ModelInterface";
 
 interface Props {
 	isoCores: ICoreISO[];
 	isoForms: IRegisteredForm[];
 }
+
+const initForm: ISupportISO = {
+	filePath: "",
+	formNumber: "",
+	revision: 0,
+};
+
 const IsoSupport = ({ isoCores, isoForms }: Props) => {
+	const [fileIso, setFileIso] = useState<FILE | null>(null);
+	const [formData, setFormData] = useState<ISupportISO>();
 	return (
 		<Box className="p-6 border my-6">
 			<Typography variant="h4">Upload Document ISO</Typography>
@@ -15,19 +24,17 @@ const IsoSupport = ({ isoCores, isoForms }: Props) => {
 				<Grid item xs={12} md={6}>
 					<Grid container spacing={4} alignItems="end">
 						<Grid item xs={12}>
-							{/* <TextField variant="standard" label="Form Number" margin="dense" fullWidth />
-							 */}
-							<input type="text" value="FRM" disabled className="border inline-block w-10" />
-							<input type="text" value="OPR" disabled className="border w-10" />
-						</Grid>
-						<Grid item xs={12}>
 							<FormControl variant="standard" margin="dense" fullWidth>
 								<InputLabel id="RegForm">RegisterForm</InputLabel>
-								<Select>
+								<Select
+									name="registeredFormId"
+									onChange={(e) => setFormData((old) => ({ ...old, registeredFormId: e.target.value }))}
+									value={formData?.registeredFormId ?? ""}
+								>
 									{isoForms &&
 										isoForms.map((form) => (
 											<MenuItem key={form.id} value={form.id}>
-												{form.name}
+												{form.formNumber}
 											</MenuItem>
 										))}
 								</Select>
@@ -36,7 +43,11 @@ const IsoSupport = ({ isoCores, isoForms }: Props) => {
 						<Grid item xs={12}>
 							<FormControl variant="standard" margin="dense" fullWidth>
 								<InputLabel id="isoCore">IsoCore</InputLabel>
-								<Select>
+								<Select
+									name="isoCoreId"
+									onChange={(e) => setFormData((old) => ({ ...old, isoCoreId: e.target.value }))}
+									value={formData?.isoCoreId ?? ""}
+								>
 									{isoCores &&
 										isoCores.map((core) => (
 											<MenuItem key={core.id} value={core.id}>

@@ -43,7 +43,6 @@ const Home = ({ fallback }: Props) => {
 	if (status === "loading") {
 		return null;
 	}
-	// console.log(session);
 	if (session.user.accountRole)
 		if (!session.user.accountRole.includes("Admin")) {
 			router.push("/dashboard");

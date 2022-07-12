@@ -1,6 +1,6 @@
-import { Box, AppBar, Toolbar, Typography, IconButton, Tooltip } from "@mui/material";
+import { Box, Typography, IconButton, Tooltip } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch } from "app/hooks";
 import { openDrawer } from "app/reducers/uiReducer";
 import { Container } from "@mui/system";
 import { AccountCircle, LogoutRounded } from "@mui/icons-material";

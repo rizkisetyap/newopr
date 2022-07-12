@@ -103,6 +103,7 @@ function ModalForm(props: IModalProps) {
 	};
 	const handleInputFileImage = (e: ChangeEvent<HTMLInputElement>) => {
 		const files = e.target.files;
+		// const blob = new Blob([""])
 		if (files !== null) {
 			setImage(files[0]);
 			const reader = new FileReader();

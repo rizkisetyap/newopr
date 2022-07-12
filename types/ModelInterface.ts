@@ -7,6 +7,21 @@ export interface IDate {
 	isDelete?: boolean;
 }
 
+export interface FileIso extends IDate {
+	id?: number;
+	fileName?: string;
+	DetailRegisterId?: number;
+	detailRegister?: DetailRegister;
+	filePath?: string;
+}
+
+interface DetailRegister {
+	Id?: number;
+	registeredFormId?: number;
+	revisi: number;
+	isActive?: boolean;
+	registeredForm: IRegisteredForm;
+}
 interface ITemplate {
 	[key: string]: any;
 }
@@ -52,7 +67,7 @@ export interface IEmploye extends IDate, ITemplate {
 	positionId?: number;
 	service?: IService;
 	position?: IPosition;
-	dateOfBirth?: Date;
+	dateOfBirth?: Date | string;
 }
 
 export interface IEvent extends IDate, ITemplate {
@@ -94,10 +109,13 @@ export interface ICoreISO extends IDate, ITemplate {
 
 export interface ISupportISO extends ITemplate {
 	id?: number;
-	iSOCore?: ICoreISO;
+	isoCoreId?: number;
+	isoCore?: ICoreISO;
+	registeredForm?: IRegisteredForm;
 	registeredFormId?: number;
 	formNumber?: string;
 	filePath?: string;
+	revision?: number;
 }
 
 export interface IPosition extends IDate, ITemplate {
@@ -122,15 +140,27 @@ export interface EventPresence {
 	dateLocation?: string;
 	qrCode: Blob;
 }
-export interface IRegisteredForm extends ITemplate {
+export interface IRegisteredForm extends ITemplate, IDate {
 	id?: number;
 	name?: string;
 	service?: IService;
 	serviceId?: number;
 	createDate?: Date;
 	updateDate?: Date;
+	formNumber?: string;
+	subLayananId?: number;
+	subLayanan?: IUnit;
+	noUrut?: number;
+	kategoriDocument?: IKategoriDocument;
+	kategoriDocumentId?: number;
+	groupId?: number;
 }
-
+export interface IUnit extends IDate {
+	id?: number;
+	name?: string;
+	service?: IService;
+	serviceId?: number;
+}
 export interface IRole extends ITemplate {
 	id?: number;
 	roleName?: string;
@@ -142,6 +172,7 @@ export interface IService extends ITemplate {
 	group?: IGroup;
 	groupId?: number;
 	kategoriService?: number;
+	shortName?: string;
 }
 
 export interface IScheduler extends ITemplate {
@@ -209,3 +240,13 @@ export type FormINIT = {
 	content: ICategory;
 	fileData: FileInfo;
 };
+
+export interface IKategoriDocument extends IDate {
+	id?: number;
+	name?: string;
+}
+export interface ListApp extends IDate {
+	id?: number;
+	name: string;
+	link: string;
+}

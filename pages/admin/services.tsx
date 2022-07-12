@@ -39,7 +39,7 @@ interface Props {
 }
 const Page: FC<Props> = ({ fallback, groups }) => {
 	const [open, setOpen] = useState(false);
-	const { data: services } = useFetch<IService[]>("/service");
+	const { data: services } = useFetch<IService[]>("/services");
 	const [pageSize, setPageSize] = useState(10);
 	const dispatch = useAppDispatch();
 	return (
@@ -107,6 +107,7 @@ interface ModalForm {
 }
 const initForm: IService = {
 	name: "",
+	shortName: "",
 };
 
 function ModalForm(props: ModalForm) {
@@ -114,12 +115,12 @@ function ModalForm(props: ModalForm) {
 	const { groups, onClose, open, dispatch } = props;
 	const { mutate } = useSWRConfig();
 	const onSuccess = () => {
-		mutate("/service");
+		mutate("/services");
 		setFormData(initForm);
 		setTimeout(onClose, 500);
 	};
 	const handleSave = () => {
-		API.handlePost<IService>(formData, onSuccess, dispatch, "service");
+		API.handlePost<IService>(formData, onSuccess, dispatch, "services");
 	};
 
 	return (
@@ -153,6 +154,17 @@ function ModalForm(props: ModalForm) {
 								))}
 							</Select>
 						</FormControl>
+					</Grid>
+					<Grid item xs={12} sm={6}>
+						<TextField
+							fullWidth
+							margin="dense"
+							variant="standard"
+							name="shortName"
+							label="shortName"
+							value={formData.shortName}
+							onChange={(e) => setFormData((old) => ({ ...old, shortName: e.target.value }))}
+						/>
 					</Grid>
 					<Grid item xs={12} sm={6}>
 						<FormControl fullWidth margin="dense" variant="standard">
