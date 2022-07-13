@@ -3,6 +3,18 @@ import useSWR, { SWRResponse } from "swr";
 import { BASE_URL } from "lib/constants";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { IUnit } from "types/ModelInterface";
+// import Cookies from "js-cookie";
+// export const cookie = Cookies.get("next-auth.session-token");
+// const AxiosAPI = axios.create({
+// 	baseURL: BASE_URL,
+// 	headers: {
+// 		"Content-Type": "application/json",
+// 		Authorization: "Bearer " + cookie,
+// 	},
+// });
+
+// console.log(cookie);
 
 export const fetcher = (path: string) => axios.get(BASE_URL + path).then((res) => res.data);
 
@@ -33,6 +45,11 @@ export const useFetchById = <T>(path: string): SWRResponse<T, any> => {
 	const { id } = router.query;
 	const res = useSWR(path + "/" + id, fetcher, { refreshInterval: 1 });
 	return res;
+};
+
+const unitQueryFetcher = (query: string) => axios.get(BASE_URL + "/unit/?" + query).then((res) => res.data);
+export const useUnitQuery = (query: string): SWRResponse<IUnit[], any> => {
+	return useSWR(query, unitQueryFetcher);
 };
 
 // export const useFetchById = <T>(path: string, deeps: any): T | undefined => {

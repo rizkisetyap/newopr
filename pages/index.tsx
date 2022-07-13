@@ -26,6 +26,7 @@ const Home = () => {
 	const [password, setPassword] = useState("");
 	const { data: session, status } = useSession();
 	const router = useRouter();
+	const { error } = router.query;
 	useEffect(() => {
 		if (status === "loading") return;
 		if (status === "authenticated") {
@@ -58,6 +59,9 @@ const Home = () => {
 									<Grid item xs={12}>
 										<Typography className="text-center mb-3" variant="h5">
 											My OPR
+										</Typography>
+										<Typography variant="body2" color="error">
+											{error}
 										</Typography>
 										<Typography
 											className="text-center font-bold text-violet-900"

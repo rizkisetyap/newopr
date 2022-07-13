@@ -1,0 +1,7 @@
+.inputFormNumber {
+	@apply max-w-[30px] text-xs md:text-sm inline-flex md:max-w-[50px] text-center rounded-sm focus:outline-none read-only:bg-gray-200 font-bold bg-white;
+}
+
+.inputContainer {
+	@apply inline-flex flex-wrap items-center;
+}
