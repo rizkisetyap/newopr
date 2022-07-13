@@ -32,7 +32,7 @@ const Page = (props: Props) => {
 								<Grid container spacing={2}>
 									{kontens &&
 										kontens.map((k) => (
-											<Link href={"/user/content/" + k.id} passHref>
+											<Link key={k.id} href={"/user/content/" + k.id} passHref>
 												<Grid item xs={12} maxHeight={300} overflow="hidden" md={6} key={k.id}>
 													<Paper>
 														<Typography variant="h4">{k.title}</Typography>

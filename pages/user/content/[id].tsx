@@ -56,7 +56,7 @@ export const getStaticPaths = async () => {
 	}));
 	return {
 		paths,
-		fallback: true,
+		fallback: false,
 	};
 };
 
@@ -68,5 +68,6 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
 		props: {
 			konten,
 		},
+		revalidate: 30,
 	};
 };
