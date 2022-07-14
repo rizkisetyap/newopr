@@ -181,5 +181,6 @@ export const getStaticProps: GetStaticProps = async () => {
 				"/officeLocation": data,
 			},
 		},
+		revalidate: 10,
 	};
 };

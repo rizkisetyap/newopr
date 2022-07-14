@@ -269,5 +269,6 @@ export const getStaticProps: GetStaticProps = async () => {
 				"/listapps/getall": data,
 			},
 		},
+		revalidate: 10,
 	};
 };

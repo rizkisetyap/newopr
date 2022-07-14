@@ -131,5 +131,6 @@ export const getStaticProps: GetStaticProps = async () => {
 				"/positions/getall": data,
 			},
 		},
+		revalidate: 10,
 	};
 };

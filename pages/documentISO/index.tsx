@@ -13,13 +13,14 @@ import {
 	MenuItem,
 	Paper,
 	Select,
+	SelectChangeEvent,
 	TextField,
 	Typography,
 } from "@mui/material";
 import { useAppDispatch } from "app/hooks";
 import axios from "axios";
 import ListDocument from "components/DOCIS/ListDocument";
-import RegisterForm from "components/DOCIS/RegisterForm";
+import RegisterForm, { IJenisDokumen } from "components/DOCIS/RegisterForm";
 import HOC from "components/HOC/HOC";
 import FileInput from "components/Input/FileInput";
 import AdminLayout from "components/Layout/AdminLayout";
@@ -30,13 +31,23 @@ import { BASE_URL } from "lib/constants";
 import { GetServerSideProps } from "next";
 import { Session } from "next-auth";
 import { getSession, useSession } from "next-auth/react";
+import Link from "next/link";
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
-import { FILE, FileIso, ICoreISO, IEmploye, IRegisteredForm, IService } from "types/ModelInterface";
+import {
+	FILE,
+	FileIso,
+	ICoreISO,
+	IEmploye,
+	IGroup,
+	IKategoriDocument,
+	IRegisteredForm,
+	IService,
+	IUnit,
+} from "types/ModelInterface";
 
 interface Props {
-	session: Session;
-	user: IEmploye;
-	services: IService[] | null;
+	serviceId: number;
+	groupId: number;
 }
 interface IDetailRegister {
 	id?: number;
@@ -53,12 +64,23 @@ const initialDataIso: FileIso = {
 	fileName: "",
 };
 
+interface ILForms {
+	id: number;
+	noForm: string;
+	formName: string;
+}
+
 const Page = (props: Props) => {
-	const { user, services } = props;
 	const { data: session, status } = useSession({ required: true });
-	// const { data: isoForms } = useFetch<ListForms[]>("/registeredForms/listforms");
-	const [noForms, setNoForms] = useState<IDetailRegister[]>([]);
-	const { data: listDocs } = useFetch<FileIso[]>("/DocumentIso/filter?npp=" + session?.user.npp);
+	const [LKategoriDokumen, setLKategoriDokumen] = useState<IKategoriDocument[]>([]);
+	const [LJenisDokumen, setLJenisDokumen] = useState<IJenisDokumen[]>([]);
+	const [LForms, setLForms] = useState<ILForms[]>([]);
+	const [LUnits, setLUnits] = useState<IUnit[]>([]);
+
+	const [kdokumenId, setKdokumenId] = useState<number | null>(null);
+	const [jdokumenId, setJdokumenId] = useState<number | null>(null);
+	const [unitId, setUnitId] = useState<number | null>(null);
+
 	const [dataUploadIso, setDataUploadIso] = useState(initialDataIso);
 	const inputFileRef = useRef<HTMLInputElement>(null);
 	const [isoFile, setIsoFile] = useState<FILE | null>(null);
@@ -89,30 +111,97 @@ const Page = (props: Props) => {
 		setDataUploadIso(initialDataIso);
 	};
 	const handleSave = () => {
+		if (kdokumenId == 2) {
+			const data: any = {
+				iSOCore: {
+					name: dataUploadIso.fileName,
+					unitId: unitId,
+					jenisDokumenId: jdokumenId,
+				},
+				fileIso: isoFile,
+			};
+			return API.handlePost<any>(data, onSuccess, dispatch, "DokumenUtama/insert");
+		}
 		setIsoFile((file) => ({ ...file, name: dataUploadIso.fileName }));
 		const data = {
 			fileIso: isoFile,
 			fileRegisteredIso: dataUploadIso,
 			npp: session?.user.npp,
 		};
-		console.log(dataUploadIso);
-		API.handlePost<any>(data, onSuccess, dispatch, "DocumentIso");
+		// console.log(dataUploadIso);
+		return API.handlePost<any>(data, onSuccess, dispatch, "DocumentIso");
 	};
+	// listener change
+	const onKategoriDokumenChange = (e: SelectChangeEvent<string | number>) => {
+		setKdokumenId(+e.target.value);
+		// if (kdokumenId) {
+		axios.get(BASE_URL + "/jenisdokumen/kategori?id=" + e.target.value).then((res) => {
+			// console.log(res);
+			setLJenisDokumen(res.data);
+		});
+		// }
+	};
+	const onJenisDokumenChange = (e: SelectChangeEvent<string | number>) => {
+		setJdokumenId(+e.target.value);
+		axios
+			.get(
+				BASE_URL +
+					`/RegisteredForms/search?ServiceId=${props.serviceId}&KategoriDocumentId=${e.target.value}&unitId=${
+						unitId ?? ""
+					}`
+			)
+			.then((res) => {
+				setLForms(res.data);
+			});
+	};
+	const UnitChange = (e: SelectChangeEvent<string | number>) => {
+		setUnitId(+e.target.value);
+		axios
+			.get(
+				BASE_URL +
+					`/RegisteredForms/search?ServiceId=${props.serviceId}&KategoriDocumentId=${kdokumenId}&unitId=${
+						e.target.value ?? ""
+					}`
+			)
+			.then((res) => {
+				setLForms(res.data);
+			});
+	};
+	// Data fetching
 	useEffect(() => {
-		const getForms = async () => {
+		const getKategoriDokumen = async () => {
 			try {
-				const res = await axios
-					.get(BASE_URL + "/registeredforms/filter?groupId=" + user.service?.groupId)
-					.then((res) => res.data);
-				setNoForms(res);
-			} catch (error) {
-				alert("Error memuat forms");
-			}
+				const kd = await axios.get(BASE_URL + "/kategoriDocument/getall").then((res) => res.data);
+				setLKategoriDokumen(kd);
+			} catch (error) {}
 		};
-		if (user.service?.groupId) {
-			getForms();
+		getKategoriDokumen();
+	}, []);
+	useEffect(() => {
+		const getUnits = async () => {
+			try {
+				const unts = await axios.get(BASE_URL + "/Unit/layanan?id=" + props.serviceId).then((res) => res.data);
+				setLUnits(unts);
+			} catch (error) {}
+		};
+		if (kdokumenId !== 2) {
+			getUnits();
 		}
-	}, [user.serviceId]);
+	}, [kdokumenId]);
+	useEffect(() => {
+		const UpdateUnit = async () => {
+			try {
+				const newUnits = await axios
+					.get(BASE_URL + "/Unit/Search?GroupId=" + props.groupId)
+					.then((res) => res.data);
+				setLUnits(newUnits);
+			} catch (error) {}
+		};
+		if (kdokumenId == 2) {
+			UpdateUnit();
+		}
+	}, [kdokumenId]);
+
 	if (status === "loading") {
 		return <BackdropLoading />;
 	}
@@ -121,10 +210,10 @@ const Page = (props: Props) => {
 			<Container maxWidth="xl" sx={{ py: 4 }}>
 				<Paper elevation={0} sx={{ p: 2 }}>
 					<div className="text-gray-600">
+						<Link href="/documentISO/createform">
+							<a href="">Buat Form</a>
+						</Link>
 						<Grid container spacing={2}>
-							<Grid item xs={12} md={6}>
-								{services && <RegisterForm services={services} />}
-							</Grid>
 							<Grid item xs={12} md={6}>
 								<Box className="p-6 my-6 border">
 									<div className="flex justify-between md:inline-flex md:justify-between md:gap-4">
@@ -133,7 +222,75 @@ const Page = (props: Props) => {
 										</Typography>
 									</div>
 									<Grid container spacing={2}>
-										<Grid item xs={12} md={6}>
+										<Grid item xs={12}>
+											<FormControl fullWidth size="small" margin="dense" variant="standard">
+												<InputLabel id="kdokumenId">Kategori Dokumen</InputLabel>
+												<Select
+													name="kdokumenId"
+													labelId="kdokumenId"
+													value={kdokumenId ?? ""}
+													onChange={onKategoriDokumenChange}
+												>
+													{LKategoriDokumen.map((kd) => (
+														<MenuItem key={kd.id} value={kd.id}>
+															{kd.name}
+														</MenuItem>
+													))}
+												</Select>
+											</FormControl>
+										</Grid>
+										<Grid item xs={12}>
+											<FormControl fullWidth size="small" margin="dense" variant="standard">
+												<InputLabel id="jdokumenId">Jenis Dokumen</InputLabel>
+												<Select
+													name="jdokumenId"
+													labelId="jdokumenId"
+													value={jdokumenId ?? ""}
+													onChange={onJenisDokumenChange}
+												>
+													{LJenisDokumen.map((kd) => (
+														<MenuItem key={kd.id} value={kd.id}>
+															{kd.name}
+														</MenuItem>
+													))}
+												</Select>
+											</FormControl>
+										</Grid>
+										<Grid item xs={12}>
+											<FormControl fullWidth size="small" margin="dense" variant="standard">
+												<InputLabel id="unitId">Unit / Kelola</InputLabel>
+												<Select name="unitId" labelId="unitId" value={unitId ?? ""} onChange={UnitChange}>
+													{LUnits.map((kd) => (
+														<MenuItem key={kd.id} value={kd.id}>
+															{kd.shortName} - {kd.name}
+														</MenuItem>
+													))}
+												</Select>
+											</FormControl>
+										</Grid>
+										{kdokumenId !== 2 && (
+											<Grid item xs={12}>
+												<FormControl fullWidth margin="dense" variant="standard">
+													<InputLabel id="detailRegisterId">No Form</InputLabel>
+													<Select
+														required
+														value={dataUploadIso.DetailRegisterId ?? ""}
+														onChange={(e) =>
+															setDataUploadIso((fd) => ({ ...fd, DetailRegisterId: +e.target.value }))
+														}
+														labelId="detailRegisterId"
+														name="detailRegisterId"
+													>
+														{LForms.map((rg) => (
+															<MenuItem value={rg.id} key={rg.id}>
+																{rg.noForm} - {rg.formName}
+															</MenuItem>
+														))}
+													</Select>
+												</FormControl>
+											</Grid>
+										)}
+										<Grid item xs={12}>
 											<TextField
 												required
 												fullWidth
@@ -146,27 +303,7 @@ const Page = (props: Props) => {
 												onChange={(e) => setDataUploadIso((fd) => ({ ...fd, fileName: e.target.value }))}
 											/>
 										</Grid>
-										<Grid item xs={12} md={6}>
-											<FormControl fullWidth margin="dense" variant="standard">
-												<InputLabel id="detailRegisterId">No Form</InputLabel>
-												<Select
-													required
-													value={dataUploadIso.DetailRegisterId ?? ""}
-													onChange={(e) =>
-														setDataUploadIso((fd) => ({ ...fd, DetailRegisterId: +e.target.value }))
-													}
-													labelId="detailRegisterId"
-													name="detailRegisterId"
-												>
-													{noForms &&
-														noForms.map((rg) => (
-															<MenuItem value={rg.id} key={rg.id}>
-																{rg.registeredForm?.formNumber}
-															</MenuItem>
-														))}
-												</Select>
-											</FormControl>
-										</Grid>
+
 										<Grid item xs={12}>
 											<FileInput ref={inputFileRef} onChange={handleFileChange} />
 										</Grid>
@@ -190,7 +327,7 @@ const Page = (props: Props) => {
 											List Document Iso
 										</Typography>
 									</div>
-									{listDocs && <ListDocument data={listDocs} />}
+									{/* {listDocs && <ListDocument data={listDocs} />} */}
 								</Box>
 							</Grid>
 						</Grid>
@@ -213,12 +350,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 		};
 	}
 	const user: IEmploye = await axios.get(BASE_URL + "/employee/by?id=" + session.user.npp).then((res) => res.data);
-	const services = await axios.get(BASE_URL + "/services/getall").then((res) => res.data);
+	const groupId = user.service?.groupId;
 	return {
 		props: {
-			session,
-			user,
-			services,
+			serviceId: user.serviceId,
+			groupId,
 		},
 	};
 };

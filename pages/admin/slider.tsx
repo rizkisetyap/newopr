@@ -165,5 +165,6 @@ export const getStaticProps: GetStaticProps = async () => {
 				"/sliders/getall": data,
 			},
 		},
+		revalidate: 10,
 	};
 };

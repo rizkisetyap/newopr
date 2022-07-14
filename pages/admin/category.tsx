@@ -148,5 +148,6 @@ export const getStaticProps: GetStaticProps = async () => {
 				"/categories/getall": data,
 			},
 		},
+		revalidate: 10,
 	};
 };

@@ -1,3 +1,4 @@
+import { IJenisDokumen } from "components/DOCIS/RegisterForm";
 import { Interface } from "readline";
 
 export interface IDate {
@@ -93,6 +94,7 @@ export interface IExtUser extends IDate, ITemplate {
 export interface IGroup extends IDate, ITemplate {
 	id?: number;
 	groupName?: string;
+	services?: IService[];
 }
 
 export interface IHistoryISO extends IDate {
@@ -151,13 +153,14 @@ export interface IRegisteredForm extends ITemplate, IDate {
 	subLayananId?: number;
 	subLayanan?: IUnit;
 	noUrut?: number;
-	kategoriDocument?: IKategoriDocument;
-	kategoriDocumentId?: number;
+	jenisDokumen?: IJenisDokumen;
+	jenisDokumenId?: number;
 	groupId?: number;
 }
 export interface IUnit extends IDate {
 	id?: number;
 	name?: string;
+	shortName?: string;
 	service?: IService;
 	serviceId?: number;
 }

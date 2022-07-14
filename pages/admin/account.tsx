@@ -354,5 +354,6 @@ export const getStaticProps: GetStaticProps = async () => {
 				"/employee": data,
 			},
 		},
+		revalidate: 10,
 	};
 };

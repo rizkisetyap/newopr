@@ -271,5 +271,6 @@ export const getStaticProps: GetStaticProps = async () => {
 				"/content/getall": data,
 			},
 		},
+		revalidate: 10,
 	};
 };
