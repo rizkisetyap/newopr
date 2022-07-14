@@ -97,6 +97,7 @@ export const getStaticProps: GetStaticProps = async () => {
 			},
 			groups,
 		},
+		revalidate: 30,
 	};
 };
 interface ModalForm {

@@ -126,5 +126,6 @@ export const getStaticProps: GetStaticProps = async () => {
 				"/groups/getall": data,
 			},
 		},
+		revalidate: 10,
 	};
 };

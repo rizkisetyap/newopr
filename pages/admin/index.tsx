@@ -114,7 +114,7 @@ const Home = ({ fallback }: Props) => {
 	);
 };
 
-Home.getStaticProps = async () => {
+export const getStaticProps: GetStaticProps = async () => {
 	const data: DashboardInfo = await axios.get(BASE_URL + "/dashboard/info").then((res) => res.data);
 
 	return {
@@ -123,6 +123,7 @@ Home.getStaticProps = async () => {
 				["/dashboard/info"]: data,
 			},
 		},
+		revalidate: 10,
 	};
 };
 Home.auth = {

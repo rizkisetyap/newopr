@@ -25,7 +25,7 @@ import API from "lib/ApiCrud";
 import { useSession } from "next-auth/react";
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useSWRConfig } from "swr";
-import { IEmploye, IGroup, IKategoriDocument, IRegisteredForm, IService, IUnit } from "types/ModelInterface";
+import { IDate, IEmploye, IGroup, IKategoriDocument, IRegisteredForm, IService, IUnit } from "types/ModelInterface";
 import s from "./FormRegister.module.css";
 import cn from "classnames";
 import axios from "axios";
@@ -38,16 +38,22 @@ interface Props {
 const initFormRegister: IRegisteredForm = {
 	name: "",
 };
-
+export interface IJenisDokumen extends IDate {
+	id?: number;
+	name?: string;
+	kategoriDokumenId?: number;
+	kategoriDokumen?: IKategoriDocument;
+}
 const RegisterForm = ({ isoForms, services }: Props) => {
+	const { data: session } = useSession();
 	const [formData, setFormData] = useState<IRegisteredForm>(initFormRegister);
-	const { data: units } = useFetch<IUnit[]>("/unit");
+	const { data: units } = useFetch<IUnit[]>("/unit/layanan?id=" + formData.serviceId ?? "");
 	const [isModalTambahUnitOpen, setIsTambahUnitOpen] = useState(false);
-	const { data: kelompok } = useFetch<IGroup[]>("/groups/getall");
-	const [kelompokId, setKelompokId] = useState<number | null>(null);
-	const [layanan, setLayanan] = useState<IService[]>(services);
+	const { data: kelompok } = useFetch<IGroup>("/groups/npp?Npp=" + session?.user.npp ?? "");
 	const [subLayanan, setSubLayanan] = useState(units);
 	const { data: typeDocs } = useFetch<IKategoriDocument[]>("/kategoriDocument/getall");
+	const [katDocId, setKatDocId] = useState<number | null>(null);
+	const { data: jenisDokumens } = useFetch<IJenisDokumen[]>("/jenisDokumen/kategori?id=" + (katDocId ?? 3));
 	// const [antrian, setAntrian] = useState<number | null>(null);
 	const kdRef = useRef<HTMLSelectElement>(null);
 	const dispatch = useAppDispatch();
@@ -59,41 +65,6 @@ const RegisterForm = ({ isoForms, services }: Props) => {
 	const handleInputSelect = (e: SelectChangeEvent<string | number>) => {
 		setFormData((old) => ({ ...old, [e.target.name]: e.target.value }));
 	};
-	useEffect(() => {
-		const filteredLayanan = services.filter((l) => l.groupId === kelompokId);
-		setFormData((old) => ({ ...old, serviceId: undefined }));
-		setLayanan([...filteredLayanan]);
-	}, [kelompokId]);
-	useEffect(() => {
-		if (!units || !formData.serviceId) {
-			return;
-		}
-		const filteredUnit = units.filter((u) => u.serviceId === formData.serviceId);
-		setSubLayanan(filteredUnit);
-	}, [units, formData.serviceId]);
-	// useEffect(() => {
-	// 	async function checkAntrian(idSub?: number | string, idLayanan?: string | number, GroupId?: number | string) {
-	// 		// let url = BASE_URL + `/registeredForms/cekAntrian?idSublayanan=${idSub}&idLayanan=${idLayanan}`;
-	// 		try {
-	// 			const data = await axios
-	// 				.get(
-	// 					BASE_URL +
-	// 						`/registeredForms/cekAntrian?idSublayanan=${idSub}&idLayanan=${idLayanan}&GroupId=${GroupId}`
-	// 				)
-	// 				.then((res) => res.data);
-	// 			setAntrian(data);
-	// 		} catch (error) {
-	// 			dispatch(
-	// 				openSnackbar({
-	// 					message: "Gagal mengambil no urut",
-	// 					severity: "error",
-	// 				})
-	// 			);
-	// 		}
-	// 	}
-
-	// 	checkAntrian(formData.subLayananId ?? "", formData.serviceId ?? "", kelompokId ?? "");
-	// }, [formData.serviceId, formData.subLayananId, kelompokId]);
 	const onSuccess = () => {
 		mutate("/registeredForms/getall");
 		setFormData(initFormRegister);
@@ -104,20 +75,21 @@ const RegisterForm = ({ isoForms, services }: Props) => {
 				BASE_URL +
 					`/registeredForms/cekAntrian?idSublayanan=${formData.subLayananId ?? ""}&idLayanan=${
 						formData.serviceId ?? ""
-					}&GroupId=${kelompokId ?? ""}`
+					}&GroupId=${kelompok?.id ?? ""}`
 			)
 			.then((res) => res.data);
 		if (!antrian) {
 			return alert("Gagal mendapat no urut");
 		}
-		const fd: IRegisteredForm = { ...formData, noUrut: antrian!, groupId: kelompokId! };
+		const fd: IRegisteredForm = { ...formData, noUrut: antrian!, groupId: kelompok?.id! };
 		const data: any = {
 			registeredForm: fd,
 			month: monthYear.month,
 			year: monthYear.year,
 		};
+		console.log(data);
+		// return;
 		API.handlePost<any>(data, onSuccess, dispatch, "registeredForms/registerForm");
-		// console.log(data);
 	};
 	// console.log(subLayanan);
 	return (
@@ -141,31 +113,62 @@ const RegisterForm = ({ isoForms, services }: Props) => {
 						</div>
 					</div>
 					<Grid container spacing={2}>
-						{/* <Grid item xs={12} md={6}>
-					<Grid container spacing={1} alignItems="end"> */}
 						<Grid item xs={12} sm={6}>
-							<TextField
-								value={formData.name}
-								onChange={handleInputText}
-								fullWidth
-								margin="dense"
-								variant="standard"
-								name="name"
-								label="Nama Form"
-							/>
-						</Grid>
-						{kelompok && (
-							<Grid item xs={12} sm={6}>
-								<FormControl fullWidth margin="dense" variant="standard">
-									<InputLabel id="groupId">Kelompok</InputLabel>
-									<Select value={kelompokId ?? ""} onChange={(e) => setKelompokId(+e.target.value)}>
-										{kelompok.map((k) => (
-											<MenuItem key={k.id} value={k.id}>
-												{k.groupName}
+							<FormControl fullWidth margin="dense" variant="standard">
+								<InputLabel id="kategoriDocumentId">Kategori Dokumen</InputLabel>
+								{typeDocs && (
+									<Select
+										name="kategoriDocumentId"
+										ref={kdRef}
+										value={katDocId ?? ""}
+										onChange={(e) => setKatDocId(+e.target.value)}
+										id="kategoriDocumentId"
+									>
+										{typeDocs.map((kd) => (
+											<MenuItem key={kd.id} value={kd.id}>
+												{kd.name}
 											</MenuItem>
 										))}
 									</Select>
+								)}
+							</FormControl>
+						</Grid>
+						<Grid item xs={12} sm={6}>
+							<FormControl
+								// disabled={}
+								fullWidth
+								margin="dense"
+								variant="standard"
+							>
+								<InputLabel id="subLayananId">Jenis Dokumen</InputLabel>
+								{katDocId && (
+									<Select
+										value={formData.jenisDokumenId ?? ""}
+										onChange={(e) => setFormData((old) => ({ ...old, jenisDokumenId: +e.target.value }))}
+										name="jenisDokumenId"
+										label="Jenis Dokumen"
+									>
+										{jenisDokumens &&
+											jenisDokumens.map((u) => (
+												<MenuItem value={u.id} key={u.id}>
+													{u.name}
+												</MenuItem>
+											))}
+									</Select>
+								)}
+							</FormControl>
+						</Grid>
+						{kelompok && (
+							<Grid item xs={12} sm={6}>
+								<FormControl fullWidth margin="dense" disabled variant="standard">
+									<InputLabel id="groupId">Kelompok</InputLabel>
+									<Select defaultValue={kelompok.id}>
+										<MenuItem selected value={kelompok.id}>
+											{kelompok.groupName}
+										</MenuItem>
+									</Select>
 								</FormControl>
+								{/* <TextField value={kelompok.groupName} name="kelompokId" /> */}
 							</Grid>
 						)}
 						<Grid item xs={12} sm={6}>
@@ -177,8 +180,8 @@ const RegisterForm = ({ isoForms, services }: Props) => {
 									labelId="serviceId"
 									onChange={handleInputSelect}
 								>
-									{kelompokId &&
-										layanan.map((s) => (
+									{services &&
+										services.map((s) => (
 											<MenuItem key={s.id} value={s.id}>
 												{s.name}
 											</MenuItem>
@@ -210,25 +213,17 @@ const RegisterForm = ({ isoForms, services }: Props) => {
 							</FormControl>
 						</Grid>
 						<Grid item xs={12} sm={6}>
-							<FormControl fullWidth margin="dense" variant="standard">
-								<InputLabel id="kategoriDocumentId">Kategori Dokumen</InputLabel>
-								{typeDocs && (
-									<Select
-										name="kategoriDocumentId"
-										ref={kdRef}
-										value={formData.kategoriDocumentId ?? ""}
-										onChange={handleInputSelect}
-										id="kategoriDocumentId"
-									>
-										{typeDocs.map((kd) => (
-											<MenuItem key={kd.id} value={kd.id}>
-												{kd.name}
-											</MenuItem>
-										))}
-									</Select>
-								)}
-							</FormControl>
+							<TextField
+								value={formData.name}
+								onChange={handleInputText}
+								fullWidth
+								margin="dense"
+								variant="standard"
+								name="name"
+								label="Nama Form"
+							/>
 						</Grid>
+
 						<Grid item xs={12} md={6}>
 							<Box>
 								<TextField
@@ -263,7 +258,7 @@ const RegisterForm = ({ isoForms, services }: Props) => {
 					</Grid>
 				</Box>
 			</Grid>
-			{layanan && (
+			{services && (
 				<FormNewUnit open={isModalTambahUnitOpen} onClose={() => setIsTambahUnitOpen(false)} services={services} />
 			)}
 		</Grid>

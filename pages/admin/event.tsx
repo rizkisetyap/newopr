@@ -220,5 +220,6 @@ export const getStaticProps: GetStaticProps = async () => {
 				"/events/getall": data,
 			},
 		},
+		revalidate: 10,
 	};
 };
