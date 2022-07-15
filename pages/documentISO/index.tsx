@@ -1,10 +1,26 @@
-import { FolderRounded, Upload } from "@mui/icons-material";
+import {
+	DeleteRounded,
+	DownloadRounded,
+	EditRounded,
+	FolderRounded,
+	Upload,
+	VisibilityRounded,
+} from "@mui/icons-material";
+import Delete from "@mui/icons-material/Delete";
+import { Document, Page as DocPage, pdfjs } from "react-pdf";
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 import {
 	Box,
 	Button,
+	Chip,
 	Container,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
 	FormControl,
 	Grid,
+	IconButton,
 	InputLabel,
 	List,
 	ListItem,
@@ -17,14 +33,17 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
+import { GridColDef } from "@mui/x-data-grid";
 import { useAppDispatch } from "app/hooks";
 import axios from "axios";
 import ListDocument from "components/DOCIS/ListDocument";
+import ModalPendukung from "components/DOCIS/Modal/ModalPendukung";
 import RegisterForm, { IJenisDokumen } from "components/DOCIS/RegisterForm";
 import HOC from "components/HOC/HOC";
 import FileInput from "components/Input/FileInput";
 import AdminLayout from "components/Layout/AdminLayout";
 import BackdropLoading from "components/MUI/BackdropLoading";
+import BaseDataGrid from "components/MUI/BaseDataGrid";
 import { useFetch } from "data/Api";
 import API from "lib/ApiCrud";
 import { BASE_URL } from "lib/constants";
@@ -33,6 +52,8 @@ import { Session } from "next-auth";
 import { getSession, useSession } from "next-auth/react";
 import Link from "next/link";
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
+import moment from "moment";
+moment.locale("id");
 import {
 	FILE,
 	FileIso,
@@ -44,6 +65,8 @@ import {
 	IService,
 	IUnit,
 } from "types/ModelInterface";
+import { openSnackbar } from "app/reducers/uiReducer";
+import { useSWRConfig } from "swr";
 
 interface Props {
 	serviceId: number;
@@ -69,9 +92,130 @@ interface ILForms {
 	noForm: string;
 	formName: string;
 }
+export interface IDokumenPendukung {
+	filePath: string;
+	fileName: string;
+	formNumber: string;
+	revisi: number;
+	lastUpdate: Date;
+	id: number;
+}
+
+const TPendukungColumns: GridColDef[] = [
+	{
+		field: "formNumber",
+		headerName: "No Form",
+		minWidth: 300,
+	},
+	{
+		field: "fileName",
+		headerName: "Nama",
+		minWidth: 250,
+		flex: 1,
+	},
+	{
+		field: "lastUpdate",
+		headerName: "Last Update",
+		width: 200,
+		valueFormatter(params) {
+			const now = moment(new Date());
+			const end = moment(params.value);
+			var durr = moment.duration(now.diff(end)).asDays();
+			if (durr > 3) {
+				return moment(params.value).calendar();
+			}
+
+			return moment(params.value).fromNow();
+		},
+	},
+	{
+		field: "Options",
+		width: 200,
+		renderCell(params) {
+			// Modal
+			const [openP, setOpenP] = useState(false);
+			const dispatch = useAppDispatch();
+			const { mutate } = useSWRConfig();
+			const { data: session } = useSession();
+			const [preview, setPreview] = useState(false);
+
+			const handleDelete = () => {
+				const yakin = confirm("Yakin hapus?");
+				if (!yakin) {
+					return;
+				}
+				axios
+					.delete(BASE_URL + "/DocumentIso/" + params.row.id)
+					.then((res) => {
+						if (res.status == 200) {
+							dispatch(openSnackbar({ severity: "success", message: "Dokumen Terhapus" }));
+							if (session) {
+								mutate("/DocumentIso/DokumenPendukung?npp=" + session.user.npp);
+							}
+						}
+					})
+					.catch((e) => {
+						dispatch(openSnackbar({ severity: "error", message: (e as any).message }));
+					});
+			};
+			return (
+				<Box>
+					<IconButton color="info" title="Edit" onClick={() => setOpenP(true)}>
+						<EditRounded />
+					</IconButton>
+					<IconButton onClick={handleDelete} color="error" title="Hapus">
+						<DeleteRounded />
+					</IconButton>
+					<IconButton onClick={() => setPreview(true)} color="info" title="View">
+						<VisibilityRounded />
+					</IconButton>
+
+					<ModalPendukung doc={params.row} onClose={() => setOpenP(false)} open={openP} />
+					<PDfViewer open={preview} onClose={() => setPreview(false)} doc={params.row} />
+				</Box>
+			);
+		},
+	},
+];
+interface IPdfViewer {
+	open: boolean;
+	onClose: () => void;
+	doc: IDokumenPendukung;
+}
+const PDfViewer = (props: IPdfViewer) => {
+	// pdf view
+	const [documentPage, setDocumentPage] = useState(1);
+	const [numPageDoc, setNumPageDoc] = useState<number | null>(null);
+	const onLoadDocSuccess = ({ numPages }: any) => {
+		setNumPageDoc(numPages);
+	};
+	const endocedUri = BASE_URL.replace("api", "") + props.doc.filePath;
+	return (
+		<Dialog fullScreen open={props.open} onClose={props.onClose}>
+			<DialogTitle className="bg-slate-900 text-white">{props.doc.fileName}</DialogTitle>
+			<DialogContent className="mx-auto">
+				<Document file={endocedUri} onLoadSuccess={onLoadDocSuccess}>
+					{[...new Array(numPageDoc).fill(1)].map((el, i) => (
+						<DocPage key={i + 1} pageNumber={i + 1} />
+					))}
+				</Document>
+			</DialogContent>
+			<DialogActions className="bg-slate-900 text-white">
+				<Button color="warning" className="bg-orange-600" onClick={props.onClose} variant="contained">
+					Close
+				</Button>
+			</DialogActions>
+		</Dialog>
+	);
+};
 
 const Page = (props: Props) => {
 	const { data: session, status } = useSession({ required: true });
+
+	const { data: IsoPendukung } = useFetch<IDokumenPendukung[]>(
+		"/DocumentIso/DokumenPendukung?npp=" + session?.user.npp
+	);
+
 	const [LKategoriDokumen, setLKategoriDokumen] = useState<IKategoriDocument[]>([]);
 	const [LJenisDokumen, setLJenisDokumen] = useState<IJenisDokumen[]>([]);
 	const [LForms, setLForms] = useState<ILForms[]>([]);
@@ -85,6 +229,10 @@ const Page = (props: Props) => {
 	const inputFileRef = useRef<HTMLInputElement>(null);
 	const [isoFile, setIsoFile] = useState<FILE | null>(null);
 	const dispatch = useAppDispatch();
+
+	// Table components
+	const [TpendukungSize, setTpendukungSize] = useState(10);
+
 	const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const files = e.target?.files?.item(0);
 		const fr = new FileReader();
@@ -210,8 +358,8 @@ const Page = (props: Props) => {
 			<Container maxWidth="xl" sx={{ py: 4 }}>
 				<Paper elevation={0} sx={{ p: 2 }}>
 					<div className="text-gray-600">
-						<Link href="/documentISO/createform">
-							<a href="">Buat Form</a>
+						<Link href="/documentISO/createform" passHref>
+							<Chip label="Buat Form Baru" component="a" variant="outlined" color="secondary" />
 						</Link>
 						<Grid container spacing={2}>
 							<Grid item xs={12} md={6}>
@@ -305,7 +453,7 @@ const Page = (props: Props) => {
 										</Grid>
 
 										<Grid item xs={12}>
-											<FileInput ref={inputFileRef} onChange={handleFileChange} />
+											<FileInput acccept="application/pdf" ref={inputFileRef} onChange={handleFileChange} />
 										</Grid>
 										<Grid item xs={12}>
 											<Button
@@ -324,10 +472,58 @@ const Page = (props: Props) => {
 								<Box className="p-6 my-6 border">
 									<div className="flex justify-between md:inline-flex md:justify-between md:gap-4">
 										<Typography component="h6" className="text-lg font-semibold md:text-xl" variant="h6">
-											List Document Iso
+											List Document Pendukung
 										</Typography>
 									</div>
-									{/* {listDocs && <ListDocument data={listDocs} />} */}
+									{IsoPendukung && (
+										<BaseDataGrid
+											rows={IsoPendukung!}
+											columns={TPendukungColumns}
+											autoHeight
+											rowsPerPageOptions={[10, 15, 20, 25, 30]}
+											getRowId={(row) => row.id}
+											pageSize={TpendukungSize}
+											onPageSizeChange={(s) => setTpendukungSize(s)}
+										/>
+									)}
+									{/* {IsoPendukung && (
+										<List dense>
+											{IsoPendukung.map((doc) => (
+												<ListItem
+													secondaryAction={
+														<Box>
+															<IconButton title="View">
+																<VisibilityRounded />
+															</IconButton>
+															<IconButton title="Edit">
+																<EditRounded />
+															</IconButton>
+															<IconButton title="Hapus">
+																<DeleteRounded />
+															</IconButton>
+															<IconButton title="Download">
+																<DownloadRounded />
+															</IconButton>
+														</Box>
+													}
+													key={doc.id}
+												>
+													<ListItemIcon>
+														<FolderRounded />
+													</ListItemIcon>
+													<ListItemText>
+														<Chip size="small" label={doc.fileName} color="secondary" variant="filled" />
+														<Chip
+															size="small"
+															label={doc.formNumber}
+															color="secondary"
+															variant="filled"
+														/>
+													</ListItemText>
+												</ListItem>
+											))}
+										</List>
+									)} */}
 								</Box>
 							</Grid>
 						</Grid>

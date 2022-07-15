@@ -2,12 +2,14 @@ import React, { ChangeEvent } from "react";
 
 interface Props {
 	onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+	acccept?: string;
 }
 const FileInput = React.forwardRef((props: Props, ref: React.ForwardedRef<HTMLInputElement>) => {
 	return (
 		<label className="block text-lg cursor-pointer bg-violet-50 rounded-full overflow-hidden">
 			<span className="sr-only bg-violet-300">Choose File</span>
 			<input
+				accept={props.acccept}
 				ref={ref}
 				onChange={props.onChange}
 				type="file"
@@ -16,5 +18,8 @@ const FileInput = React.forwardRef((props: Props, ref: React.ForwardedRef<HTMLIn
 		</label>
 	);
 });
+FileInput.defaultProps = {
+	acccept: "*",
+};
 
 export default FileInput;
