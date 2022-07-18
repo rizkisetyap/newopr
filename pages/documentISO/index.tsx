@@ -6,7 +6,6 @@ import {
 	Upload,
 	VisibilityRounded,
 } from "@mui/icons-material";
-import Delete from "@mui/icons-material/Delete";
 import { Document, Page as DocPage, pdfjs } from "react-pdf";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 import {
@@ -36,9 +35,8 @@ import {
 import { GridColDef } from "@mui/x-data-grid";
 import { useAppDispatch } from "app/hooks";
 import axios from "axios";
-import ListDocument from "components/DOCIS/ListDocument";
 import ModalPendukung from "components/DOCIS/Modal/ModalPendukung";
-import RegisterForm, { IJenisDokumen } from "components/DOCIS/RegisterForm";
+import { IJenisDokumen } from "components/DOCIS/RegisterForm";
 import HOC from "components/HOC/HOC";
 import FileInput from "components/Input/FileInput";
 import AdminLayout from "components/Layout/AdminLayout";
@@ -47,8 +45,7 @@ import BaseDataGrid from "components/MUI/BaseDataGrid";
 import { useFetch } from "data/Api";
 import API from "lib/ApiCrud";
 import { BASE_URL } from "lib/constants";
-import { GetServerSideProps } from "next";
-import { Session } from "next-auth";
+import { GetServerSideProps, GetStaticProps } from "next";
 import { getSession, useSession } from "next-auth/react";
 import Link from "next/link";
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
@@ -215,7 +212,9 @@ const Page = (props: Props) => {
 	const { data: IsoPendukung } = useFetch<IDokumenPendukung[]>(
 		"/DocumentIso/DokumenPendukung?npp=" + session?.user.npp
 	);
-
+	const { data: currentUser } = useFetch<IEmploye>("/employee/by?id=" + session?.user?.npp ?? "");
+	const serviceId = currentUser?.serviceId ?? "";
+	const groupId = currentUser?.service?.groupId ?? "";
 	const [LKategoriDokumen, setLKategoriDokumen] = useState<IKategoriDocument[]>([]);
 	const [LJenisDokumen, setLJenisDokumen] = useState<IJenisDokumen[]>([]);
 	const [LForms, setLForms] = useState<ILForms[]>([]);
@@ -294,7 +293,7 @@ const Page = (props: Props) => {
 		axios
 			.get(
 				BASE_URL +
-					`/RegisteredForms/search?ServiceId=${props.serviceId}&KategoriDocumentId=${e.target.value}&unitId=${
+					`/RegisteredForms/search?ServiceId=${serviceId}&KategoriDocumentId=${e.target.value}&unitId=${
 						unitId ?? ""
 					}`
 			)
@@ -307,7 +306,7 @@ const Page = (props: Props) => {
 		axios
 			.get(
 				BASE_URL +
-					`/RegisteredForms/search?ServiceId=${props.serviceId}&KategoriDocumentId=${kdokumenId}&unitId=${
+					`/RegisteredForms/search?ServiceId=${serviceId}&KategoriDocumentId=${kdokumenId}&unitId=${
 						e.target.value ?? ""
 					}`
 			)
@@ -328,7 +327,7 @@ const Page = (props: Props) => {
 	useEffect(() => {
 		const getUnits = async () => {
 			try {
-				const unts = await axios.get(BASE_URL + "/Unit/layanan?id=" + props.serviceId).then((res) => res.data);
+				const unts = await axios.get(BASE_URL + "/Unit/layanan?id=" + serviceId).then((res) => res.data);
 				setLUnits(unts);
 			} catch (error) {}
 		};
@@ -339,9 +338,7 @@ const Page = (props: Props) => {
 	useEffect(() => {
 		const UpdateUnit = async () => {
 			try {
-				const newUnits = await axios
-					.get(BASE_URL + "/Unit/Search?GroupId=" + props.groupId)
-					.then((res) => res.data);
+				const newUnits = await axios.get(BASE_URL + "/Unit/Search?GroupId=" + groupId).then((res) => res.data);
 				setLUnits(newUnits);
 			} catch (error) {}
 		};
@@ -486,44 +483,6 @@ const Page = (props: Props) => {
 											onPageSizeChange={(s) => setTpendukungSize(s)}
 										/>
 									)}
-									{/* {IsoPendukung && (
-										<List dense>
-											{IsoPendukung.map((doc) => (
-												<ListItem
-													secondaryAction={
-														<Box>
-															<IconButton title="View">
-																<VisibilityRounded />
-															</IconButton>
-															<IconButton title="Edit">
-																<EditRounded />
-															</IconButton>
-															<IconButton title="Hapus">
-																<DeleteRounded />
-															</IconButton>
-															<IconButton title="Download">
-																<DownloadRounded />
-															</IconButton>
-														</Box>
-													}
-													key={doc.id}
-												>
-													<ListItemIcon>
-														<FolderRounded />
-													</ListItemIcon>
-													<ListItemText>
-														<Chip size="small" label={doc.fileName} color="secondary" variant="filled" />
-														<Chip
-															size="small"
-															label={doc.formNumber}
-															color="secondary"
-															variant="filled"
-														/>
-													</ListItemText>
-												</ListItem>
-											))}
-										</List>
-									)} */}
 								</Box>
 							</Grid>
 						</Grid>
@@ -534,25 +493,43 @@ const Page = (props: Props) => {
 	);
 };
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-	const session = await getSession(ctx);
+// export const getServerSideProps: GetServerSideProps = async (ctx) => {
+// 	const session = await getSession(ctx);
 
-	if (!session) {
-		return {
-			redirect: {
-				destination: "/",
-				permanent: false,
-			},
-		};
-	}
-	const user: IEmploye = await axios.get(BASE_URL + "/employee/by?id=" + session.user.npp).then((res) => res.data);
-	const groupId = user.service?.groupId;
-	return {
-		props: {
-			serviceId: user.serviceId,
-			groupId,
-		},
-	};
-};
+// 	if (!session) {
+// 		return {
+// 			redirect: {
+// 				destination: "/",
+// 				permanent: false,
+// 			},
+// 		};
+// 	}
+// 	const user: IEmploye = await axios.get(BASE_URL + "/employee/by?id=" + session.user.npp).then((res) => res.data);
+// 	const groupId = user.service?.groupId;
+// 	return {
+// 		props: {
+// 			serviceId: user.serviceId,
+// 			groupId,
+// 		},
+// 	};
+// };
+
+// export const getStaticProps: GetStaticProps = async (ctx) => {
+// 	const session = await getSession(ctx.params);
+// 	console.log(session);
+// 	if (!session) {
+// 		return {
+// 			notFound: true,
+// 		};
+// 	}
+// 	const user: IEmploye = await axios.get(BASE_URL + "/employee/by?id=" + session.user.npp).then((res) => res.data);
+// 	const groupId = user.service?.groupId;
+// 	return {
+// 		props: {
+// 			serviceId: user.serviceId,
+// 			groupId,
+// 		},
+// 	};
+// };
 
 export default HOC(Page);

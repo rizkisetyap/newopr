@@ -15,8 +15,10 @@ import { useAppDispatch } from "app/hooks";
 import FileInput from "components/Input/FileInput";
 import API, { FILE } from "lib/ApiCrud";
 import { BASE_URL } from "lib/constants";
+import { useSession } from "next-auth/react";
 import { IDokumenPendukung } from "pages/documentISO";
-import React, { ChangeEvent, useState } from "react";
+import React, { ChangeEvent, useRef, useState } from "react";
+import { useSWRConfig } from "swr";
 
 interface Props {
 	open: boolean;
@@ -24,7 +26,11 @@ interface Props {
 	doc: IDokumenPendukung;
 }
 const ModalPendukung = (props: Props) => {
+	const { data: session } = useSession();
 	const [name, setName] = useState(props.doc.fileName);
+	const { mutate } = useSWRConfig();
+	const fileInputRef = useRef<HTMLInputElement>(null);
+
 	const dispatch = useAppDispatch();
 	const [isoFile, setIsoFile] = useState<FILE | null>(null);
 	const download = () => {
@@ -51,13 +57,17 @@ const ModalPendukung = (props: Props) => {
 			fr.readAsDataURL(files);
 		}
 	};
+	const onSuccess = () => {
+		mutate("/DocumentIso/DokumenPendukung?npp=" + session?.user.npp);
+		fileInputRef.current!.value = "";
+	};
 	const handleUpdate = () => {
 		const data = {
 			fileName: name,
 			document: isoFile,
 		};
 
-		API.handleUpdate<any>(data, () => console.log("Ye berhasil"), dispatch, "DocumentIso/edit/" + props.doc.id);
+		API.handleUpdate<any>(data, onSuccess, dispatch, "DocumentIso/edit/" + props.doc.id);
 	};
 	return (
 		<Dialog maxWidth="md" fullWidth open={props.open} onClose={props.onClose}>
@@ -81,7 +91,7 @@ const ModalPendukung = (props: Props) => {
 						<Typography>Dokumen sebelumnya</Typography>
 						<Chip label={props.doc.fileName} size="small" variant="outlined" onClick={download} />
 					</div>
-					<FileInput acccept="application/pdf" onChange={handleFileChange} />
+					<FileInput ref={fileInputRef} acccept="application/pdf" onChange={handleFileChange} />
 				</Grid>
 			</DialogContent>
 			<DialogActions className="bg-slate-900 text-white">
