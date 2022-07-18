@@ -83,7 +83,7 @@ const Page = () => {
 		if (session?.user.npp) {
 			getCurrenGroup();
 		}
-	}, [session]);
+	}, [session?.user.npp]);
 
 	// listener change
 	const onKategoriDokumenChange = (e: SelectChangeEvent<string | number>) => {
@@ -122,27 +122,34 @@ const Page = () => {
 			return alert("Kategori dokumen harus diisi");
 		}
 		const antrian = await axios
-			.get(BASE_URL + "/RegisteredForms/CekAntrian?idSublayanan=" + unitId + "&KategoriDokumenId=" + kdokumenId)
+			.get(
+				BASE_URL +
+					"/RegisteredForms/CekAntrian?idSublayanan=" +
+					unitId +
+					"&KategoriDokumenId=" +
+					kdokumenId +
+					"&Tahun=" +
+					monthYear.year +
+					"&bulan=" +
+					monthYear.month
+			)
 			.then((res) => res.data);
 		if (!antrian) {
 			return alert("No urut gagal di generate!!!");
 		}
-		console.log("Antrian", antrian);
-		return;
-		const fd: RegisterVM = {
+		const fd: IRegisteredForm = {
 			year: monthYear.year,
 			month: monthYear.month,
-			registeredForm: {
-				name: namaForm,
-				serviceId: serviceId!,
-				groupId: kelompokId!,
-				jenisDokumenId: jdokumenId!,
-				noUrut: antrian!,
-				subLayananId: unitId!,
-			},
+
+			name: namaForm,
+			serviceId: serviceId!,
+			groupId: kelompokId!,
+			jenisDokumenId: jdokumenId!,
+			noUrut: antrian!,
+			subLayananId: unitId!,
 		};
 
-		API.handlePost<RegisterVM>(fd, onSuccess, dispatch, "RegisteredForms/registerForm");
+		API.handlePost<IRegisteredForm>(fd, onSuccess, dispatch, "RegisteredForms/registerForm");
 	};
 	return (
 		<AdminLayout title="">
