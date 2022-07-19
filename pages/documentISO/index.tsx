@@ -25,15 +25,23 @@ import {
 	ListItem,
 	ListItemIcon,
 	ListItemText,
+	makeStyles,
 	MenuItem,
 	Paper,
 	Select,
 	SelectChangeEvent,
+	Table,
+	TableBody,
+	TableCell,
+	TableContainer,
+	TableHead,
+	TableRow,
 	TextField,
 	Typography,
 } from "@mui/material";
+import cn from "classnames";
 import { GridColDef } from "@mui/x-data-grid";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/hooks";
 import axios from "axios";
 import ModalPendukung from "components/DOCIS/Modal/ModalPendukung";
 import { IJenisDokumen } from "components/DOCIS/RegisterForm";
@@ -64,7 +72,7 @@ import {
 } from "types/ModelInterface";
 import { openSnackbar } from "app/reducers/uiReducer";
 import { useSWRConfig } from "swr";
-
+import SaveButton from "components/Button/SaveButton";
 interface Props {
 	serviceId: number;
 	groupId: number;
@@ -210,7 +218,10 @@ const Page = (props: Props) => {
 	const { data: session, status } = useSession({ required: true });
 
 	const { data: IsoPendukung } = useFetch<IDokumenPendukung[]>(
-		"/DocumentIso/DokumenPendukung?npp=" + session?.user.npp
+		"/DocumentIso/DokumenPendukung?GroupId=" + session?.user.employee.service?.groupId
+	);
+	const { data: regForms } = useFetch<IDetailRegister[]>(
+		"/RegisteredForms/Filter?GroupId=" + session?.user.employee.service?.groupId
 	);
 	const { data: currentUser } = useFetch<IEmploye>("/employee/by?id=" + session?.user?.npp ?? "");
 	const serviceId = currentUser?.serviceId ?? "";
@@ -229,6 +240,10 @@ const Page = (props: Props) => {
 	const [isoFile, setIsoFile] = useState<FILE | null>(null);
 	const dispatch = useAppDispatch();
 
+	// mutation
+	const { mutate } = useSWRConfig();
+	// loading state
+	const isLoading = useAppSelector((s) => s.action.isLoading);
 	// Table components
 	const [TpendukungSize, setTpendukungSize] = useState(10);
 
@@ -254,6 +269,7 @@ const Page = (props: Props) => {
 		}
 	};
 	const onSuccess = () => {
+		mutate("/DocumentIso/DokumenPendukung?GroupId=" + session?.user.employee.service?.groupId);
 		inputFileRef!.current!.value = "";
 		setDataUploadIso(initialDataIso);
 	};
@@ -359,7 +375,7 @@ const Page = (props: Props) => {
 							<Chip label="Buat Form Baru" component="a" variant="outlined" color="secondary" />
 						</Link>
 						<Grid container spacing={2}>
-							<Grid item xs={12} md={6}>
+							<Grid item xs={12} md={5}>
 								<Box className="p-6 my-6 border">
 									<div className="flex justify-between md:inline-flex md:justify-between md:gap-4">
 										<Typography variant="h6" component="h6" className="text-lg font-semibold md:text-xl">
@@ -453,17 +469,64 @@ const Page = (props: Props) => {
 											<FileInput acccept="application/pdf" ref={inputFileRef} onChange={handleFileChange} />
 										</Grid>
 										<Grid item xs={12}>
-											<Button
-												variant="contained"
-												color="primary"
-												className="text-sm bg-blue-600 mt-4"
-												onClick={handleSave}
-											>
-												Save
-											</Button>
+											<SaveButton color="primary" text="Save" onClick={handleSave} />
 										</Grid>
 									</Grid>
 								</Box>
+							</Grid>
+							<Grid item xs={12} md={7}>
+								<Paper className="mt-6" sx={{ width: "100%", overflow: "hidden" }}>
+									<TableContainer sx={{ maxHeight: 540 }}>
+										<Table
+											sx={{
+												fontSize: 14,
+												mt: 2,
+											}}
+											stickyHeader
+											aria-label="sticky table"
+										>
+											<TableHead>
+												<TableRow
+													sx={{
+														backgroundColor: "#ccc",
+													}}
+												>
+													<TableCell component="th">ID</TableCell>
+													<TableCell component="th">No Form</TableCell>
+													<TableCell component="th">Nama Form</TableCell>
+													<TableCell component="th">Tanggal Dibuat</TableCell>
+													<TableCell component="th">Options</TableCell>
+												</TableRow>
+											</TableHead>
+											<TableBody>
+												{regForms &&
+													regForms.map((f, idx) => (
+														<TableRow
+															className={cn({
+																["bg-gray-200"]: idx % 2 === 0,
+															})}
+															key={f.id}
+														>
+															<TableCell>{f.id}</TableCell>
+															<TableCell>{f.registeredForm?.formNumber}</TableCell>
+															<TableCell>{f.registeredForm?.name}</TableCell>
+															<TableCell>
+																{moment(f.registeredForm?.createDate?.toString()).calendar()}
+															</TableCell>
+															<TableCell>
+																<IconButton color="primary" title="Edit">
+																	<EditRounded />
+																</IconButton>
+																<IconButton color="error" title="Hapus">
+																	<DeleteRounded />
+																</IconButton>
+															</TableCell>
+														</TableRow>
+													))}
+											</TableBody>
+										</Table>
+									</TableContainer>
+								</Paper>
 							</Grid>
 							<Grid item xs={12}>
 								<Box className="p-6 my-6 border">

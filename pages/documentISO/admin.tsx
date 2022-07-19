@@ -1,6 +1,7 @@
 import cn from "classnames";
 import {
 	FolderRounded,
+	HistoryRounded,
 	PictureAsPdfRounded,
 	PrintRounded,
 	SaveRounded,
@@ -41,6 +42,7 @@ import useSWR, { SWRConfig, useSWRConfig } from "swr";
 import { IFallback, IGroup, IKategoriDocument, IService, IUnit } from "types/ModelInterface";
 import { setgid } from "process";
 import { IDokumenPendukung } from ".";
+import Link from "next/link";
 
 interface Props {
 	fallback: IFallback;
@@ -233,6 +235,11 @@ const Admin = (props: Props) => {
 													<IconButton title="preview" onClick={() => setPreview(true)}>
 														<Visibility />
 													</IconButton>
+													<Link href={"/documentISO/history/" + g.id}>
+														<IconButton title="History" component="a">
+															<HistoryRounded />
+														</IconButton>
+													</Link>
 													<PDfViewer doc={g} onClose={() => setPreview(false)} open={preview} />
 												</div>
 											</div>

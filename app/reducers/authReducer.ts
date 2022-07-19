@@ -13,6 +13,7 @@ export interface User {
 	jabatan: string;
 	kelompok: string;
 	service: string;
+	employee: IEmploye;
 }
 interface IUserInfo {
 	user: User;

@@ -45,7 +45,6 @@ interface Props {
 const Account: FC<Props> = ({ fallback }) => {
 	const [open, setOpen] = useState(false); // * Modal state
 	const { data: employees } = useFetch<IEmploye[]>("/employee");
-	console.log(employees);
 
 	return (
 		<SWRConfig value={{ fallback }}>
@@ -73,15 +72,15 @@ const Account: FC<Props> = ({ fallback }) => {
 										gap: 1,
 									})}
 								>
-									<Button
+									{/* <Button
 										startIcon={<DownloadRoundedIcon />}
 										size="small"
 										className="bg-blue-600"
 										variant="contained"
 									>
 										<span className="text-xs">Dowload Template</span>
-									</Button>
-									<Button
+									</Button> */}
+									{/* <Button
 										className="bg-orange-600"
 										color="warning"
 										variant="contained"
@@ -89,7 +88,7 @@ const Account: FC<Props> = ({ fallback }) => {
 										startIcon={<FileUploadRoundedIcon />}
 									>
 										<span className="text-xs">Upload</span>
-									</Button>
+									</Button> */}
 									{/* <Link passHref href="/add/user"> */}
 									<Button
 										startIcon={<AddCircleRoundedIcon />}

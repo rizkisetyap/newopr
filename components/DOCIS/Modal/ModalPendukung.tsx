@@ -12,6 +12,8 @@ import {
 	Typography,
 } from "@mui/material";
 import { useAppDispatch } from "app/hooks";
+import SaveButton from "components/Button/SaveButton";
+import DialogActionButton from "components/DialogButton/SaveButton";
 import FileInput from "components/Input/FileInput";
 import API, { FILE } from "lib/ApiCrud";
 import { BASE_URL } from "lib/constants";
@@ -58,7 +60,7 @@ const ModalPendukung = (props: Props) => {
 		}
 	};
 	const onSuccess = () => {
-		mutate("/DocumentIso/DokumenPendukung?npp=" + session?.user.npp);
+		mutate("/DocumentIso/DokumenPendukung?GroupId=" + session?.user.employee.service?.groupId);
 		fileInputRef.current!.value = "";
 	};
 	const handleUpdate = () => {
@@ -95,12 +97,7 @@ const ModalPendukung = (props: Props) => {
 				</Grid>
 			</DialogContent>
 			<DialogActions className="bg-slate-900 text-white">
-				<Button className="bg-orange-600" color="warning" variant="contained" onClick={props.onClose}>
-					Cancel
-				</Button>
-				<Button className="bg-blue-600" color="primary" variant="contained" onClick={handleUpdate}>
-					Save
-				</Button>
+				<DialogActionButton onSave={handleUpdate} onCancel={props.onClose} />
 			</DialogActions>
 		</Dialog>
 	);

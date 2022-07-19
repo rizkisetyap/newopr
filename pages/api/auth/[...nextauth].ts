@@ -16,13 +16,11 @@ export default NextAuth({
 			async authorize(credentials, req) {
 				const npp = credentials?.npp;
 				const password = credentials?.password;
-				const user = await axios.post(BASE_URL + "/login", { npp, password }).then((res) => res.data);
-
-				// console.log(user);
-				if (!user) {
-					return null;
+				const res = await axios.post(BASE_URL + "/login", { npp, password }).then((res) => res.data);
+				if (res.status !== 200) {
+					throw new Error("Npp / password tidak cocok");
 				}
-				return user;
+				return res;
 			},
 		}),
 	],
