@@ -68,6 +68,6 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
 		props: {
 			konten,
 		},
-		revalidate: 30,
+		revalidate: 10,
 	};
 };

@@ -272,6 +272,7 @@ const Page = () => {
 								}}
 								variant="standard"
 								type="month"
+								placeholder="YYYY-MM"
 								label="Bulan / Tahun"
 							/>
 						</Grid>
@@ -373,7 +374,7 @@ const FormNewUnit = (props: FormProps) => {
 					Cancel
 				</Button>
 				<Button variant="contained" color="primary" className="bg-blue-600" onClick={handleSave}>
-					save
+					Save
 				</Button>
 			</DialogActions>
 		</Dialog>

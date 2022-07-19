@@ -27,7 +27,7 @@ import WorkspacesRoundedIcon from "@mui/icons-material/WorkspacesRounded";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { closeDrawer, openDrawer } from "app/reducers/uiReducer";
 import MuiNavbar from "components/MUI/Navbar";
-import React, { FC, ReactNode, useEffect, useState } from "react";
+import React, { FC, Fragment, ReactNode, useEffect, useState } from "react";
 import LinkItem from "components/MUI/LinkItem";
 import Head from "next/head";
 
@@ -37,6 +37,8 @@ import CircleRoundedIcon from "@mui/icons-material/CircleRounded";
 import VideocamRoundedIcon from "@mui/icons-material/VideocamRounded";
 import InsertDriveFileRoundedIcon from "@mui/icons-material/InsertDriveFileRounded";
 import { useSession } from "next-auth/react";
+import BackdropLoading from "components/MUI/BackdropLoading";
+import { useRouter } from "next/router";
 interface IProps {
 	children: ReactNode;
 	title: string;
@@ -44,10 +46,21 @@ interface IProps {
 
 const AdminLayout: FC<IProps> = ({ children, title }) => {
 	const open = useAppSelector((state) => state.ui.sidebar.open);
-	const { data: session } = useSession();
+	const { data: session, status } = useSession({ required: true });
+
+	const router = useRouter();
 	const dispatch = useAppDispatch();
 	// const isAdmin = true;
 	const isAdmin = session?.user.accountRole.includes("Admin");
+
+	// useEffect(() => {
+	// 	if (status !== "authenticated") {
+	// 		router.push("/");
+	// 	}
+	// }, [status]);
+	if (status === "loading") {
+		return <BackdropLoading />;
+	}
 
 	return (
 		<div className="overflow-x-hidden bg-violet-100">
@@ -117,15 +130,24 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 								/>
 							</React.Fragment>
 						)}
-						<LinkItem
-							Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
-							text="Document ISO"
-							href="/documentISO"
-						/>
-						<LinkItem Icon={<CircleRoundedIcon />} text="Konten" href="/user/content" />
-						<LinkItem Icon={<CircleRoundedIcon />} text="Event" href="/user/event" />
-						<LinkItem Icon={<CircleRoundedIcon />} text="List Aplikasi OPR" href="/user/listAplikasi" />
-						<LinkItem Icon={<CircleRoundedIcon />} text="Lokasi Kantor" href="/user/lokasi" />
+						{!isAdmin && (
+							<Fragment>
+								<LinkItem Icon={<CircleRoundedIcon />} text="Konten" href="/user/content" />
+								<LinkItem Icon={<CircleRoundedIcon />} text="Event" href="/user/event" />
+								<LinkItem Icon={<CircleRoundedIcon />} text="List Aplikasi OPR" href="/user/listAplikasi" />
+								<LinkItem Icon={<CircleRoundedIcon />} text="Lokasi Kantor" href="/user/lokasi" />
+								<LinkItem
+									Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
+									text="Document ISO"
+									href="/documentISO"
+								/>
+								<LinkItem
+									Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
+									text="Document ISO Admin"
+									href="/documentISO/admin"
+								/>
+							</Fragment>
+						)}
 					</List>
 				</Box>
 			</SwipeableDrawer>

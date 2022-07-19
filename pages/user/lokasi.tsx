@@ -47,7 +47,6 @@ const Page = (props: Props) => {
 			);
 		}
 	}, []);
-	console.log(location);
 	return (
 		<SWRConfig value={{ fallback: props.fallback }}>
 			<AdminLayout title="Lokasi Kantor">
@@ -90,8 +89,6 @@ const Page = (props: Props) => {
 								</Table>
 							</TableContainer>
 						)}
-
-						<iframe src="https://platform.twitter.com/widgets/tweet_button.html"></iframe>
 					</Paper>
 				</Container>
 			</AdminLayout>

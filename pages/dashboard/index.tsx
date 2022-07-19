@@ -20,28 +20,10 @@ interface Props {
 
 const Dashboard = (props: Props) => {
 	const { status, data } = useSession({ required: true });
-	const { data: events } = useFetch<IEvent[]>("/events/getall");
-	const [absen, setAbsen] = useState<EventPresence[]>();
-	// console.log(events);
-	console.log(data);
-	useEffect(() => {
-		const getQr = async () => {
-			const promises = await events!.map(async (e) => {
-				const data = await axios.get(BASE_URL + "/Presence/" + e.id).then((res) => res.data);
-				const blob = await fetch(data.qrSrc).then((res) => res.blob());
-				console.log(blob);
-				return { ...data, qrCode: blob } as Promise<EventPresence>;
-			});
-			const qrs = await Promise.all<EventPresence>(promises);
-			setAbsen(qrs);
 
-			// console.log(qrs);
-		};
-		if (events) {
-			getQr();
-		}
-	}, [events]);
-
+	if (status === "loading") {
+		return <BackdropLoading />;
+	}
 	return (
 		<SWRConfig value={{ fallback: props.fallback }}>
 			<AdminLayout title="Hello">
@@ -53,20 +35,6 @@ const Dashboard = (props: Props) => {
 								{data?.user.service} )
 							</Typography>
 						</div>
-						<div>
-							<Typography>Events</Typography>
-							<Grid container spacing={2} sx={{ p: 4 }}>
-								{absen &&
-									absen.map((e) => (
-										<Grid key={e.id} item xs={12} sm={6} md={4}>
-											<Paper elevation={2} sx={{ p: 2 }}>
-												<Typography>{e.name}</Typography>
-												<img src={URL.createObjectURL(e.qrCode)} />
-											</Paper>
-										</Grid>
-									))}
-							</Grid>
-						</div>
 					</Paper>
 				</Container>
 			</AdminLayout>
@@ -75,28 +43,3 @@ const Dashboard = (props: Props) => {
 };
 
 export default HOC(Dashboard);
-
-Dashboard.auth = {
-	loading: <BackdropLoading />,
-	unauthorized: "/newopr",
-};
-
-export const getStaticProps: GetStaticProps = async (ctx) => {
-	try {
-		const events = await axios.get(BASE_URL + "/events/getall").then((res) => res.data);
-		return {
-			props: {
-				fallback: {
-					"/events/getall": events,
-				},
-			},
-		};
-	} catch (error) {
-		return {
-			redirect: {
-				destination: "/newopr/400",
-				permanent: false,
-			},
-		};
-	}
-};

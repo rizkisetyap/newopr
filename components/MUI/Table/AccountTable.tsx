@@ -20,12 +20,8 @@ import {
 import { GridColDef, GridRenderCellParams, GridValueGetterParams } from "@mui/x-data-grid";
 import { useFetch } from "data/Api";
 import { ChangeEvent, FC, useState } from "react";
-import { IEmploye, IGroup, IPosition, IService } from "types/ModelInterface";
-import BackdropLoading from "../BackdropLoading";
+import { IEmploye, IPosition, IService } from "types/ModelInterface";
 import BaseDataGrid from "../BaseDataGrid";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
 import API from "lib/ApiCrud";
 import { useAppDispatch } from "app/hooks";
 import { useSWRConfig } from "swr";
@@ -62,7 +58,7 @@ export const columnsAccount: GridColDef[] = [
 	{
 		field: "layanan",
 		headerClassName: "Layanan",
-		flex: 1,
+		flex: 2,
 		minWidth: 225,
 		valueGetter(params: GridValueGetterParams<any, IEmploye>) {
 			return params.row.service?.name + " " + "(" + params.row.service?.group?.groupName + ")";
@@ -81,40 +77,29 @@ export const columnsAccount: GridColDef[] = [
 		renderCell(params: GridRenderCellParams<any, IEmploye>) {
 			const dispatch = useAppDispatch();
 			const [open, setOpen] = useState(false);
-			const [isView, setIsView] = useState(false);
 			const { mutate } = useSWRConfig();
-			const handleOpenModalView = () => {
-				setIsView(true);
-				setOpen(true);
-			};
 			const handleOpenModalEdit = () => {
-				setIsView(false);
 				setOpen(true);
 			};
 			const onSuccess = () => {
 				mutate("/employee");
 			};
 			const hapus = () => {
+				const confirmed = confirm("Yakin ?");
+				if (!confirmed) {
+					return;
+				}
 				API.handleSoftDelete(params.row.npp, onSuccess, dispatch, "Employee");
 			};
 			return (
 				<Box>
-					<IconButton className="text-cyan-400" color="info" aria-label="Info" onClick={handleOpenModalView}>
-						<VisibilityRounded />
-					</IconButton>
 					<IconButton color="primary" aria-label="Edit" onClick={handleOpenModalEdit}>
 						<EditRounded />
 					</IconButton>
 					<IconButton onClick={hapus} color="error" aria-label="Hapus">
 						<DeleteRounded />
 					</IconButton>
-					<ModalInfo
-						mutate={mutate}
-						open={open}
-						data={params.row}
-						onClose={() => setOpen(false)}
-						isView={isView}
-					/>
+					<ModalInfo mutate={mutate} open={open} data={params.row} onClose={() => setOpen(false)} />
 				</Box>
 			);
 		},
@@ -129,6 +114,7 @@ const AccountTable: FC<Props> = ({ employees }) => {
 	return (
 		<Box overflow="hidden" minHeight={400}>
 			<BaseDataGrid
+				autoHeight
 				columns={columnsAccount}
 				rows={employees}
 				getRowId={(row) => row.npp}
@@ -145,12 +131,11 @@ interface IModal {
 	open: boolean;
 	onClose: () => void;
 	data: IEmploye;
-	isView: boolean;
 	mutate: ScopedMutator;
 }
 function ModalInfo(props: IModal) {
 	const dispatch = useAppDispatch();
-	const { data, onClose, open, isView, mutate } = props;
+	const { data, onClose, open, mutate } = props;
 	const [formData, setFormData] = useState(data);
 	const { data: jabatans, error: jabatansError } = useFetch<IPosition[]>("/positions/getall");
 	const { data: layanan, error: servicesError } = useFetch<IService[]>("/services");
@@ -168,7 +153,7 @@ function ModalInfo(props: IModal) {
 	};
 	const onSuccess = () => {
 		mutate("/employee");
-		setTimeout(onClose, 1000);
+		setTimeout(onClose, 500);
 	};
 	const handleSaveUpdate = () => {
 		// console.log(formData);
@@ -179,7 +164,7 @@ function ModalInfo(props: IModal) {
 		<Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
 			<DialogTitle>
 				<Typography className="font-medium text-gray-600" variant="h5" component="span">
-					{isView ? "Info" : "Edit"}
+					Edit
 				</Typography>
 			</DialogTitle>
 			<DialogContent>
@@ -193,7 +178,6 @@ function ModalInfo(props: IModal) {
 							name="npp"
 							label="NPP"
 							value={formData.npp}
-							disabled={isView}
 							onChange={handleInputText}
 						/>
 					</Grid>
@@ -206,7 +190,6 @@ function ModalInfo(props: IModal) {
 							label="FIRSTNAME"
 							name="firstName"
 							value={formData.firstName}
-							disabled={isView}
 							onChange={handleInputText}
 						/>
 					</Grid>
@@ -219,7 +202,6 @@ function ModalInfo(props: IModal) {
 							name="lastName"
 							label="LASTNAME"
 							value={formData.lastName}
-							disabled={isView}
 							onChange={handleInputText}
 						/>
 					</Grid>
@@ -232,12 +214,11 @@ function ModalInfo(props: IModal) {
 							label="PHONENUMBER"
 							name="phoneNumber"
 							value={formData.phoneNumber}
-							disabled={isView}
 							onChange={handleInputText}
 						/>
 					</Grid>
 					<Grid item xs={12} sm={6} md={4}>
-						<FormControl variant="standard" fullWidth size="small" margin="dense" disabled={isView}>
+						<FormControl variant="standard" fullWidth size="small" margin="dense">
 							<InputLabel id="gender">GENDER</InputLabel>
 							<Select
 								variant="standard"
@@ -253,7 +234,7 @@ function ModalInfo(props: IModal) {
 						</FormControl>
 					</Grid>
 					<Grid item xs={12} sm={6} md={4}>
-						<FormControl variant="standard" fullWidth size="small" margin="dense" disabled={isView}>
+						<FormControl variant="standard" fullWidth size="small" margin="dense">
 							<InputLabel id="jabatan">Jabatan</InputLabel>
 							<Select
 								labelId="jabatan"
@@ -272,7 +253,7 @@ function ModalInfo(props: IModal) {
 						</FormControl>
 					</Grid>
 					<Grid item xs={12} sm={6} md={4}>
-						<FormControl variant="standard" fullWidth margin="dense" size="small" disabled={isView}>
+						<FormControl variant="standard" fullWidth margin="dense" size="small">
 							<InputLabel id="kelompok">Layanan</InputLabel>
 							<Select
 								fullWidth
@@ -293,7 +274,6 @@ function ModalInfo(props: IModal) {
 					</Grid>
 					<Grid item xs={12} sm={6} md={4}>
 						<DateTimePicker
-							disabled={isView}
 							label="Tanggal Lahir"
 							value={formData.dateOfBirth!}
 							renderInput={(params) => (
@@ -314,20 +294,12 @@ function ModalInfo(props: IModal) {
 				</Grid>
 			</DialogContent>
 			<DialogActions>
-				{isView ? (
-					<Button className="bg-violet-700" onClick={onClose} color="secondary" variant="contained">
-						Close
-					</Button>
-				) : (
-					<>
-						<Button className="bg-orange-600" color="warning" variant="contained" onClick={onClose}>
-							Cancel
-						</Button>
-						<Button color="primary" variant="contained" className="bg-blue-600" onClick={handleSaveUpdate}>
-							Save
-						</Button>
-					</>
-				)}
+				<Button className="bg-orange-600" color="warning" variant="contained" onClick={onClose}>
+					Cancel
+				</Button>
+				<Button color="primary" variant="contained" className="bg-blue-600" onClick={handleSaveUpdate}>
+					Save
+				</Button>
 			</DialogActions>
 		</Dialog>
 	);
