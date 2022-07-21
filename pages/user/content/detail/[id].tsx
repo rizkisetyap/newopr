@@ -1,7 +1,7 @@
 import { Box, Container, Paper } from "@mui/material";
 import axios from "axios";
 import AdminLayout from "components/Layout/AdminLayout";
-import { BASE_URL } from "lib/constants";
+import moment, { BASE_URL } from "lib/constants";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { ParsedUrlQuery } from "querystring";
 import React from "react";
@@ -23,19 +23,55 @@ const Details = (props: Props) => {
 				}}
 			>
 				<Paper elevation={0} sx={{ p: 2 }}>
-					<Box className="flex flex-col-reverse md:flex-row md:justify-between p-4">
-						<div className="flex-1">
-							<MDEditor source={props.konten.bodyContent} />
+					<Box className="">
+						<div className="flex justify-between items-center">
+							<h1 className="text-3xl mb-4 font-bold uppercase">{props.konten.title}</h1>
+							<span className="italic text-sm font-bold">{moment(props.konten.createDate).calendar()}</span>
 						</div>
-						<div>
+						<div className="h-96 static overflow-hidden object-cover">
 							<img
-								className="mb-2 md:mb-0"
+								className="object-cover block"
 								src={BASE_URL.replace("/api", "/") + props.konten.pathImage}
 								alt={props.konten.title + "image"}
 							/>
 						</div>
+						<div className="relative mt-8">
+							<MDEditor source={props.konten.bodyContent} />
+						</div>
 					</Box>
+					<div></div>
 				</Paper>
+				<div className="bg-white mt-4 p-2">
+					<h6 className="font-bold mb-4 text-lg">Lampiran</h6>
+					<div className="space-y-2">
+						<div className="flex gap-4 items-center">
+							<span>Image :</span>
+							{props.konten.pathImage && (
+								<a
+									target="_blank"
+									rel="noreferrer"
+									className="text-xs bg-cyan-400 text-white rounded-full px-4 py-0.5"
+									href={BASE_URL.replace("api", "") + props.konten.pathImage}
+								>
+									download
+								</a>
+							)}
+						</div>
+						<div className="flex gap-4 items-center">
+							<span>File :</span>
+							{props.konten.pathContent && (
+								<a
+									target="_blank"
+									rel="noreferrer"
+									className="text-xs bg-cyan-400 text-white rounded-full px-4 py-0.5"
+									href={BASE_URL.replace("api", "") + props.konten.pathContent}
+								>
+									download
+								</a>
+							)}
+						</div>
+					</div>
+				</div>
 			</Container>
 		</AdminLayout>
 	);

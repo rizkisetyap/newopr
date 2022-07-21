@@ -5,6 +5,7 @@ import { store } from "../app/store";
 import { SessionProvider } from "next-auth/react";
 import UserPage from "components/HOC/UserPage";
 import { NextComponentType } from "next";
+import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
 
 type CustomComponent = NextComponentType & {
 	auth: boolean;
@@ -17,6 +18,7 @@ function MyApp({ Component, pageProps }: CustomApprops) {
 	return (
 		<SessionProvider session={pageProps.session} basePath="/newopr/api/auth">
 			<Provider store={store}>
+				<CssBaseline />
 				<Component {...pageProps} />
 			</Provider>
 		</SessionProvider>

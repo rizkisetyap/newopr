@@ -22,7 +22,6 @@ const Home = () => {
 		}
 	}, [session, status]);
 
-	console.log(session, status);
 	if (status === "loading" || (status === "authenticated" && session)) {
 		return <BackdropLoading />;
 	}

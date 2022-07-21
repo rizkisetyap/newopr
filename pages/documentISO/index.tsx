@@ -1,11 +1,4 @@
-import {
-	DeleteRounded,
-	DownloadRounded,
-	EditRounded,
-	FolderRounded,
-	Upload,
-	VisibilityRounded,
-} from "@mui/icons-material";
+import { DeleteRounded, EditRounded, VisibilityRounded } from "@mui/icons-material";
 import { Document, Page as DocPage, pdfjs } from "react-pdf";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 import {
@@ -21,26 +14,14 @@ import {
 	Grid,
 	IconButton,
 	InputLabel,
-	List,
-	ListItem,
-	ListItemIcon,
-	ListItemText,
-	makeStyles,
 	MenuItem,
 	Paper,
 	Select,
 	SelectChangeEvent,
-	Table,
-	TableBody,
-	TableCell,
-	TableContainer,
-	TableHead,
-	TableRow,
 	TextField,
 	Typography,
 } from "@mui/material";
-import cn from "classnames";
-import { GridColDef } from "@mui/x-data-grid";
+import { GridColDef, GridValueGetterParams } from "@mui/x-data-grid";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import axios from "axios";
 import ModalPendukung from "components/DOCIS/Modal/ModalPendukung";
@@ -53,31 +34,21 @@ import BaseDataGrid from "components/MUI/BaseDataGrid";
 import { useFetch } from "data/Api";
 import API from "lib/ApiCrud";
 import { BASE_URL } from "lib/constants";
-import { GetServerSideProps, GetStaticProps } from "next";
-import { getSession, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import moment from "moment";
 moment.locale("id");
-import {
-	FILE,
-	FileIso,
-	ICoreISO,
-	IEmploye,
-	IGroup,
-	IKategoriDocument,
-	IRegisteredForm,
-	IService,
-	IUnit,
-} from "types/ModelInterface";
+import { FILE, FileIso, IEmploye, IKategoriDocument, IRegisteredForm, IUnit } from "types/ModelInterface";
 import { openSnackbar } from "app/reducers/uiReducer";
 import { useSWRConfig } from "swr";
 import SaveButton from "components/Button/SaveButton";
+import columnsRegsiterForms from "../../components/GridColumns/ColumnRegisterForms";
 interface Props {
 	serviceId: number;
 	groupId: number;
 }
-interface IDetailRegister {
+export interface IDetailRegister {
 	id?: number;
 	registeredFormId?: number;
 	revisi?: number;
@@ -122,9 +93,13 @@ const TPendukungColumns: GridColDef[] = [
 		field: "lastUpdate",
 		headerName: "Last Update",
 		width: 200,
+		valueGetter(params: GridValueGetterParams<any, any>) {
+			return params.row.updateDate ?? params.row.createDate;
+		},
 		valueFormatter(params) {
 			const now = moment(new Date());
 			const end = moment(params.value);
+			// console.log(params.value);
 			var durr = moment.duration(now.diff(end)).asDays();
 			if (durr > 3) {
 				return moment(params.value).calendar();
@@ -196,8 +171,12 @@ const PDfViewer = (props: IPdfViewer) => {
 	};
 	const endocedUri = BASE_URL.replace("api", "") + props.doc.filePath;
 	return (
-		<Dialog fullScreen open={props.open} onClose={props.onClose}>
-			<DialogTitle className="bg-slate-900 text-white">{props.doc.fileName}</DialogTitle>
+		<Dialog fullWidth maxWidth="lg" open={props.open} onClose={props.onClose}>
+			<DialogTitle>
+				<Typography className="border-b-2 border-spacing-2 border-b-orange-600 font-bold" component="p">
+					{props.doc.fileName}
+				</Typography>
+			</DialogTitle>
 			<DialogContent className="mx-auto">
 				<Document file={endocedUri} onLoadSuccess={onLoadDocSuccess}>
 					{[...new Array(numPageDoc).fill(1)].map((el, i) => (
@@ -205,7 +184,7 @@ const PDfViewer = (props: IPdfViewer) => {
 					))}
 				</Document>
 			</DialogContent>
-			<DialogActions className="bg-slate-900 text-white">
+			<DialogActions>
 				<Button color="warning" className="bg-orange-600" onClick={props.onClose} variant="contained">
 					Close
 				</Button>
@@ -246,6 +225,7 @@ const Page = (props: Props) => {
 	const isLoading = useAppSelector((s) => s.action.isLoading);
 	// Table components
 	const [TpendukungSize, setTpendukungSize] = useState(10);
+	const [TFormsSize, setTFormsSize] = useState(10);
 
 	const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const files = e.target?.files?.item(0);
@@ -270,6 +250,7 @@ const Page = (props: Props) => {
 	};
 	const onSuccess = () => {
 		mutate("/DocumentIso/DokumenPendukung?GroupId=" + session?.user.employee.service?.groupId);
+		mutate("/RegisteredForms/Filter?GroupId=" + session?.user.employee.service?.groupId);
 		inputFileRef!.current!.value = "";
 		setDataUploadIso(initialDataIso);
 	};
@@ -296,6 +277,7 @@ const Page = (props: Props) => {
 	};
 	// listener change
 	const onKategoriDokumenChange = (e: SelectChangeEvent<string | number>) => {
+		setLJenisDokumen([]);
 		setKdokumenId(+e.target.value);
 		// if (kdokumenId) {
 		axios.get(BASE_URL + "/jenisdokumen/kategori?id=" + e.target.value).then((res) => {
@@ -306,23 +288,23 @@ const Page = (props: Props) => {
 	};
 	const onJenisDokumenChange = (e: SelectChangeEvent<string | number>) => {
 		setJdokumenId(+e.target.value);
-		axios
-			.get(
-				BASE_URL +
-					`/RegisteredForms/search?ServiceId=${serviceId}&KategoriDocumentId=${e.target.value}&unitId=${
-						unitId ?? ""
-					}`
-			)
-			.then((res) => {
-				setLForms(res.data);
-			});
+		// axios
+		// 	.get(
+		// 		BASE_URL +
+		// 			`/RegisteredForms/search?ServiceId=${serviceId}&KategoriDocumentId=${e.target.value}&unitId=${
+		// 				unitId ?? ""
+		// 			}`
+		// 	)
+		// 	.then((res) => {
+		// 		setLForms(res.data);
+		// 	});
 	};
 	const UnitChange = (e: SelectChangeEvent<string | number>) => {
 		setUnitId(+e.target.value);
 		axios
 			.get(
 				BASE_URL +
-					`/RegisteredForms/search?ServiceId=${serviceId}&KategoriDocumentId=${kdokumenId}&unitId=${
+					`/RegisteredForms/search?ServiceId=${serviceId}&KategoriDocumentId=${jdokumenId}&unitId=${
 						e.target.value ?? ""
 					}`
 			)
@@ -382,6 +364,7 @@ const Page = (props: Props) => {
 											Upload Document
 										</Typography>
 									</div>
+									{/* Input document */}
 									<Grid container spacing={2}>
 										<Grid item xs={12}>
 											<FormControl fullWidth size="small" margin="dense" variant="standard">
@@ -417,6 +400,7 @@ const Page = (props: Props) => {
 												</Select>
 											</FormControl>
 										</Grid>
+										{/* {kdokumenId === 3 && ( */}
 										<Grid item xs={12}>
 											<FormControl fullWidth size="small" margin="dense" variant="standard">
 												<InputLabel id="unitId">Unit / Kelola</InputLabel>
@@ -429,6 +413,7 @@ const Page = (props: Props) => {
 												</Select>
 											</FormControl>
 										</Grid>
+										{/* )} */}
 										{kdokumenId !== 2 && (
 											<Grid item xs={12}>
 												<FormControl fullWidth margin="dense" variant="standard">
@@ -472,62 +457,26 @@ const Page = (props: Props) => {
 											<SaveButton color="primary" text="Save" onClick={handleSave} />
 										</Grid>
 									</Grid>
+									{/* end input document */}
 								</Box>
 							</Grid>
-							<Grid item xs={12} md={7}>
-								<Paper className="mt-6" sx={{ width: "100%", overflow: "hidden" }}>
-									<TableContainer sx={{ maxHeight: 540 }}>
-										<Table
-											sx={{
-												fontSize: 14,
-												mt: 2,
-											}}
-											stickyHeader
-											aria-label="sticky table"
-										>
-											<TableHead>
-												<TableRow
-													sx={{
-														backgroundColor: "#ccc",
-													}}
-												>
-													<TableCell component="th">ID</TableCell>
-													<TableCell component="th">No Form</TableCell>
-													<TableCell component="th">Nama Form</TableCell>
-													<TableCell component="th">Tanggal Dibuat</TableCell>
-													<TableCell component="th">Options</TableCell>
-												</TableRow>
-											</TableHead>
-											<TableBody>
-												{regForms &&
-													regForms.map((f, idx) => (
-														<TableRow
-															className={cn({
-																["bg-gray-200"]: idx % 2 === 0,
-															})}
-															key={f.id}
-														>
-															<TableCell>{f.id}</TableCell>
-															<TableCell>{f.registeredForm?.formNumber}</TableCell>
-															<TableCell>{f.registeredForm?.name}</TableCell>
-															<TableCell>
-																{moment(f.registeredForm?.createDate?.toString()).calendar()}
-															</TableCell>
-															<TableCell>
-																<IconButton color="primary" title="Edit">
-																	<EditRounded />
-																</IconButton>
-																<IconButton color="error" title="Hapus">
-																	<DeleteRounded />
-																</IconButton>
-															</TableCell>
-														</TableRow>
-													))}
-											</TableBody>
-										</Table>
-									</TableContainer>
+							{/* Data grid forms */}
+							<Grid item xs={12}>
+								<Paper className="mt-6" sx={{ width: "100%", overflow: "auto" }}>
+									{regForms && (
+										<BaseDataGrid
+											columns={columnsRegsiterForms}
+											rows={regForms}
+											getRowId={(row) => row.id}
+											autoHeight
+											rowsPerPageOptions={[10, 15, 20, 25, 30]}
+											pageSize={TFormsSize}
+											onPageSizeChange={(s) => setTFormsSize(s)}
+										/>
+									)}
 								</Paper>
 							</Grid>
+							{/* end data grid forms */}
 							<Grid item xs={12}>
 								<Box className="p-6 my-6 border">
 									<div className="flex justify-between md:inline-flex md:justify-between md:gap-4">
@@ -537,7 +486,7 @@ const Page = (props: Props) => {
 									</div>
 									{IsoPendukung && (
 										<BaseDataGrid
-											rows={IsoPendukung!}
+											rows={IsoPendukung}
 											columns={TPendukungColumns}
 											autoHeight
 											rowsPerPageOptions={[10, 15, 20, 25, 30]}
@@ -556,43 +505,16 @@ const Page = (props: Props) => {
 	);
 };
 
-// export const getServerSideProps: GetServerSideProps = async (ctx) => {
-// 	const session = await getSession(ctx);
+interface Props {
+	id: number;
+}
 
-// 	if (!session) {
-// 		return {
-// 			redirect: {
-// 				destination: "/",
-// 				permanent: false,
-// 			},
-// 		};
-// 	}
-// 	const user: IEmploye = await axios.get(BASE_URL + "/employee/by?id=" + session.user.npp).then((res) => res.data);
-// 	const groupId = user.service?.groupId;
-// 	return {
-// 		props: {
-// 			serviceId: user.serviceId,
-// 			groupId,
-// 		},
-// 	};
-// };
-
-// export const getStaticProps: GetStaticProps = async (ctx) => {
-// 	const session = await getSession(ctx.params);
-// 	console.log(session);
-// 	if (!session) {
-// 		return {
-// 			notFound: true,
-// 		};
-// 	}
-// 	const user: IEmploye = await axios.get(BASE_URL + "/employee/by?id=" + session.user.npp).then((res) => res.data);
-// 	const groupId = user.service?.groupId;
-// 	return {
-// 		props: {
-// 			serviceId: user.serviceId,
-// 			groupId,
-// 		},
-// 	};
-// };
+const ModalEditForms = (props: Props) => {
+	const { id } = props;
+	const [data, setData] = useState<IRegisteredForm | null>(null);
+	useEffect(() => {
+		const get = axios.get(BASE_URL + "/");
+	}, []);
+};
 
 export default HOC(Page);

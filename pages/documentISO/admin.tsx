@@ -37,12 +37,16 @@ import { useFetch } from "data/Api";
 import API from "lib/ApiCrud";
 import { BASE_URL } from "lib/constants";
 import { GetStaticProps } from "next";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import useSWR, { SWRConfig, useSWRConfig } from "swr";
 import { IFallback, IGroup, IKategoriDocument, IService, IUnit } from "types/ModelInterface";
 import { setgid } from "process";
 import { IDokumenPendukung } from ".";
 import Link from "next/link";
+import AdminTabelForms, { RowsInterface } from "components/DOCIS/AdminTabelForms";
+import { Session } from "inspector";
+import { useSession } from "next-auth/react";
+import BackdropLoading from "components/MUI/BackdropLoading";
 
 interface Props {
 	fallback: IFallback;
@@ -66,9 +70,13 @@ const Admin = (props: Props) => {
 	const [lId, setLId] = useState<number | null>(null);
 	const [UId, setUId] = useState<number | null>(null);
 	// count
+	const { data: session, status } = useSession({ required: true });
 	// view
 	const [preview, setPreview] = useState(false);
 	const [doc, setDoc] = useState<IDokumenPendukung | null>(null);
+
+	// list forms
+	const { data: Forms, error: FormsError } = useFetch<RowsInterface[]>("/RegisteredForms/getall");
 	const handleFolderClick = (groupId: number) => {
 		const g: IGroup[] = groups.filter((g: any) => g.id == groupId);
 		if (g.length > 0) {
@@ -102,6 +110,18 @@ const Admin = (props: Props) => {
 		window.location.href = BASE_URL.replace("api", "") + filepath;
 	};
 
+	if (status === "loading") {
+		{
+			return <BackdropLoading />;
+		}
+	}
+	if (!session.user.accountRole.includes("AdminISO")) {
+		return (
+			<div className="h-screen w-screen grid place-content-center">
+				<Typography variant="h1">AUTHORIZED PAGE 403</Typography>
+			</div>
+		);
+	}
 	return (
 		<SWRConfig value={{ fallback: props.fallback }}>
 			<AdminLayout title="Admin ISO">
@@ -155,7 +175,9 @@ const Admin = (props: Props) => {
 											>
 												<div className="flex flex-col justify-center items-center">
 													<FolderRounded fontSize="large" />
-													<Typography variant="body2">{g.shortName}</Typography>
+													<Typography variant="body2">
+														{g.shortName === "KKR" ? "KR" : g.shortName}
+													</Typography>
 												</div>
 											</Card>
 										))}
@@ -184,7 +206,9 @@ const Admin = (props: Props) => {
 											>
 												<div className="flex flex-col justify-center items-center">
 													<FolderRounded fontSize="large" />
-													<Typography variant="body2">{g.shortName}</Typography>
+													<Typography variant="body2">
+														{g.shortName.length <= 1 ? g.name : g.shortName}
+													</Typography>
 												</div>
 											</Card>
 										))}
@@ -196,9 +220,11 @@ const Admin = (props: Props) => {
 				</Container>
 				<Divider />
 				<Container maxWidth="xl" className="pt-2">
-					<Typography className="text-center mb-2" variant="h6">
-						List Dokumen Iso
-					</Typography>
+					{fileIsos && (
+						<Typography className="text-center mb-2" variant="h6">
+							List Dokumen Iso
+						</Typography>
+					)}
 					<Collapse in={openUnit} orientation="vertical">
 						{fileIsos && (
 							<Stack flexWrap="wrap" direction="row" spacing={2}>
@@ -235,7 +261,7 @@ const Admin = (props: Props) => {
 													<IconButton title="preview" onClick={() => setPreview(true)}>
 														<Visibility />
 													</IconButton>
-													<Link href={"/documentISO/history/" + g.id}>
+													<Link passHref href={"/documentISO/history/" + g.id}>
 														<IconButton title="History" component="a">
 															<HistoryRounded />
 														</IconButton>
@@ -250,6 +276,16 @@ const Admin = (props: Props) => {
 						)}
 					</Collapse>
 				</Container>
+				<Container maxWidth="xl" className="mb-8">
+					{/* Tabel Forms */}
+					<div className="bg-white mt-6 pb-6 rounded-md shadow-sm px-6">
+						<Box className="flex justify-between py-4">
+							<Typography variant="h6">List Forms</Typography>
+							<Typography>Create Form</Typography>
+						</Box>
+						<AdminTabelForms data={Forms} loading={!Forms && !FormsError} />
+					</div>
+				</Container>
 			</AdminLayout>
 		</SWRConfig>
 	);
@@ -259,10 +295,12 @@ export default HOC(Admin);
 
 export const getStaticProps: GetStaticProps = async () => {
 	const groups = await axios.get(BASE_URL + "/adminiso/group").then((res) => res.data);
+	const Forms: RowsInterface = await axios.get(BASE_URL + "/RegisteredForms/getall").then((res) => res.data);
 	return {
 		props: {
 			fallback: {
 				"/adminiso/group": groups,
+				"/RegisteredForms/getall": Forms,
 			},
 		},
 		revalidate: 10,
@@ -283,8 +321,12 @@ const PDfViewer = (props: IPdfViewer) => {
 	};
 	const endocedUri = BASE_URL.replace("api", "") + props.doc.filePath;
 	return (
-		<Dialog fullScreen open={props.open} onClose={props.onClose}>
-			<DialogTitle className="bg-slate-900 text-white">{props.doc.fileName}</DialogTitle>
+		<Dialog maxWidth="lg" fullWidth open={props.open} onClose={props.onClose}>
+			<DialogTitle>
+				<Typography className="border-b-2 border-spacing-2 border-b-orange-600 font-bold" component="h2">
+					{props.doc.fileName}
+				</Typography>
+			</DialogTitle>
 			<DialogContent className="mx-auto">
 				<Document file={endocedUri} onLoadSuccess={onLoadDocSuccess}>
 					{[...new Array(numPageDoc).fill(1)].map((el, i) => (
@@ -292,7 +334,7 @@ const PDfViewer = (props: IPdfViewer) => {
 					))}
 				</Document>
 			</DialogContent>
-			<DialogActions className="bg-slate-900 text-white">
+			<DialogActions>
 				<Button color="warning" className="bg-orange-600" onClick={props.onClose} variant="contained">
 					Close
 				</Button>

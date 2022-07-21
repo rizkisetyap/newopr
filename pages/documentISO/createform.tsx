@@ -25,7 +25,7 @@ import { useFetch } from "data/Api";
 import API from "lib/ApiCrud";
 import { BASE_URL } from "lib/constants";
 import { useSession } from "next-auth/react";
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { IGroup, IKategoriDocument, IRegisteredForm, IService, IUnit } from "types/ModelInterface";
 
 type Data = {
@@ -121,19 +121,23 @@ const Page = () => {
 		if (!kdokumenId) {
 			return alert("Kategori dokumen harus diisi");
 		}
-		const antrian = await axios
-			.get(
-				BASE_URL +
-					"/RegisteredForms/CekAntrian?idSublayanan=" +
-					unitId +
-					"&KategoriDokumenId=" +
-					kdokumenId +
-					"&Tahun=" +
-					monthYear.year +
-					"&bulan=" +
-					monthYear.month
-			)
-			.then((res) => res.data);
+		let url =
+			BASE_URL +
+			"/RegisteredForms/CekAntrian?idSublayanan=" +
+			unitId +
+			"&KategoriDokumenId=" +
+			kdokumenId +
+			"&Tahun=" +
+			monthYear.year +
+			"&bulan=" +
+			monthYear.month;
+		if (kdokumenId === 1) {
+			url = BASE_URL + "/RegisteredForms/CekAntrian/Inti?GroupId=" + kelompokId;
+		}
+		const antrian = await axios.get(url).then((res) => res.data);
+
+		// console.log(antrian);
+		// return;
 		if (!antrian) {
 			return alert("No urut gagal di generate!!!");
 		}
@@ -176,11 +180,16 @@ const Page = () => {
 									value={kdokumenId ?? ""}
 									onChange={onKategoriDokumenChange}
 								>
-									{data.kDokumens.map((kd) => (
-										<MenuItem key={kd.id} value={kd.id}>
-											{kd.name}
-										</MenuItem>
-									))}
+									{data.kDokumens.map((kd) => {
+										if (kd.id === 2) {
+											return null;
+										}
+										return (
+											<MenuItem key={kd.id} value={kd.id}>
+												{kd.name}
+											</MenuItem>
+										);
+									})}
 								</Select>
 							</FormControl>
 						</Grid>
@@ -193,11 +202,13 @@ const Page = () => {
 									value={jdokumenId ?? ""}
 									onChange={(e) => setJdokumenId(+e.target.value)}
 								>
-									{data.jDokumens.map((kd) => (
-										<MenuItem key={kd.id} value={kd.id}>
-											{kd.name}
-										</MenuItem>
-									))}
+									{data.jDokumens.map((kd) => {
+										return (
+											<MenuItem key={kd.id} value={kd.id}>
+												{kd.name}
+											</MenuItem>
+										);
+									})}
 								</Select>
 							</FormControl>
 						</Grid>
@@ -221,42 +232,46 @@ const Page = () => {
 								)}
 							</FormControl>
 						</Grid>
-						<Grid item xs={12} md={6}>
-							<FormControl fullWidth size="small" margin="dense" variant="standard">
-								<InputLabel id="serviceId">Layanan</InputLabel>
-								{data.services && (
-									<Select
-										name="serviceId"
-										labelId="serviceId"
-										value={serviceId ?? ""}
-										onChange={onLayananChange}
-									>
-										{data.services?.map((s) => (
-											<MenuItem selected key={s.id} value={s.id}>
-												{s.shortName} ({s.name})
-											</MenuItem>
-										))}
-									</Select>
-								)}
-							</FormControl>
-						</Grid>
-						<Grid item xs={12} md={6}>
-							<FormControl fullWidth size="small" margin="dense" variant="standard">
-								<InputLabel id="unitId">Unit / Kelolaan</InputLabel>
-								<Select
-									name="unitId"
-									labelId="unitId"
-									value={unitId ?? ""}
-									onChange={(e) => setUnitId(+e.target.value)}
-								>
-									{data.units.map((u) => (
-										<MenuItem key={u.id} value={u.id}>
-											{u.shortName} ({u.name})
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
-						</Grid>
+						{kdokumenId !== 1 && (
+							<Fragment>
+								<Grid item xs={12} md={6}>
+									<FormControl fullWidth size="small" margin="dense" variant="standard">
+										<InputLabel id="serviceId">Layanan</InputLabel>
+										{data.services && (
+											<Select
+												name="serviceId"
+												labelId="serviceId"
+												value={serviceId ?? ""}
+												onChange={onLayananChange}
+											>
+												{data.services?.map((s) => (
+													<MenuItem selected key={s.id} value={s.id}>
+														{s.shortName} ({s.name})
+													</MenuItem>
+												))}
+											</Select>
+										)}
+									</FormControl>
+								</Grid>
+								<Grid item xs={12} md={6}>
+									<FormControl fullWidth size="small" margin="dense" variant="standard">
+										<InputLabel id="unitId">Unit / Kelolaan</InputLabel>
+										<Select
+											name="unitId"
+											labelId="unitId"
+											value={unitId ?? ""}
+											onChange={(e) => setUnitId(+e.target.value)}
+										>
+											{data.units.map((u) => (
+												<MenuItem key={u.id} value={u.id}>
+													{u.shortName} ({u.name})
+												</MenuItem>
+											))}
+										</Select>
+									</FormControl>
+								</Grid>
+							</Fragment>
+						)}
 						<Grid item xs={12} md={6}>
 							<TextField
 								fullWidth
@@ -273,7 +288,7 @@ const Page = () => {
 								variant="standard"
 								type="month"
 								placeholder="YYYY-MM"
-								label="Bulan / Tahun"
+								label="Tahun - Bulan"
 							/>
 						</Grid>
 						<Grid item xs={12} md={6}>

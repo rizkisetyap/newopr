@@ -31,7 +31,7 @@ import React, { FC, Fragment, ReactNode, useEffect, useState } from "react";
 import LinkItem from "components/MUI/LinkItem";
 import Head from "next/head";
 
-import { AdminPanelSettingsRounded, ChevronRight, ExpandMore } from "@mui/icons-material";
+import { AdminPanelSettingsRounded, ChevronRight, ExpandMore, ListAltRounded } from "@mui/icons-material";
 import ListRoundedIcon from "@mui/icons-material/ListRounded";
 import CircleRoundedIcon from "@mui/icons-material/CircleRounded";
 import VideocamRoundedIcon from "@mui/icons-material/VideocamRounded";
@@ -52,6 +52,7 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 	const dispatch = useAppDispatch();
 	// const isAdmin = true;
 	const isAdmin = session?.user.accountRole.includes("Admin");
+	const isAdminIso = session?.user.accountRole.includes("AdminISO");
 
 	// useEffect(() => {
 	// 	if (status !== "authenticated") {
@@ -132,20 +133,22 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 						)}
 						{!isAdmin && (
 							<Fragment>
-								<LinkItem Icon={<CircleRoundedIcon />} text="Konten" href="/user/content" />
-								<LinkItem Icon={<CircleRoundedIcon />} text="Event" href="/user/event" />
-								<LinkItem Icon={<CircleRoundedIcon />} text="List Aplikasi OPR" href="/user/listAplikasi" />
-								<LinkItem Icon={<CircleRoundedIcon />} text="Lokasi Kantor" href="/user/lokasi" />
+								<LinkItem Icon={<ArticleIcon />} text="Konten" href="/user/content" />
+								<LinkItem Icon={<EventAvailableIcon />} text="Event" href="/user/event" />
+								<LinkItem Icon={<ListAltRounded />} text="List Aplikasi OPR" href="/user/listAplikasi" />
+								<LinkItem Icon={<AddLocationAltRoundedIcon />} text="Lokasi Kantor" href="/user/lokasi" />
 								<LinkItem
 									Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
 									text="Document ISO"
 									href="/documentISO"
 								/>
-								<LinkItem
-									Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
-									text="Document ISO Admin"
-									href="/documentISO/admin"
-								/>
+								{isAdminIso && (
+									<LinkItem
+										Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
+										text="Document ISO Admin"
+										href="/documentISO/admin"
+									/>
+								)}
 							</Fragment>
 						)}
 					</List>
