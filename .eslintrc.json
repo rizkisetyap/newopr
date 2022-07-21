@@ -1,8 +1,10 @@
 {
-  "extends": "next/core-web-vitals",
-  "rules": {
-    "react-hooks/rules-of-hooks": "off",
-    "react/display-name": "off",
-    "react-hooks/exhaustive-deps": "off"
-  }
+	"extends": "next/core-web-vitals",
+	"rules": {
+		"react-hooks/rules-of-hooks": "off",
+		"react/display-name": "off",
+		"react-hooks/exhaustive-deps": "off",
+		"@next/next/no-img-element": "off",
+		"jsx-a11y/alt-text": "off"
+	}
 }

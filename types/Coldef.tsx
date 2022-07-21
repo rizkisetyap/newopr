@@ -187,7 +187,9 @@ function ModalForm(props: ModalForm) {
 			</DialogContent>
 			<DialogActions className="bg-slate-900 text-white">
 				<CancelButton onClick={onClose} />
-				<SaveButton onClick={handleSave} />
+				<Button variant="contained" color="primary" className="bg-blue-600" onClick={handleSave}>
+					Save
+				</Button>
 			</DialogActions>
 		</Dialog>
 	);

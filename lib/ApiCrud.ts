@@ -1,7 +1,7 @@
 import { setLoading } from "app/reducers/actionReducer";
 import { closeModal, openSnackbar } from "app/reducers/uiReducer";
 import { AppDispatch } from "app/store";
-import axios from "axios";
+import axios, { Axios, AxiosError, AxiosResponse } from "axios";
 import { ICategory, IContent } from "types/ModelInterface";
 import { BASE_URL } from "./constants";
 export type FILE = {
@@ -86,30 +86,33 @@ export const handlePost = async <T>(data: T, onSuccess: () => void, dispatch: Ap
 	dispatch(setLoading(true));
 	try {
 		const res = await axios.post(BASE_URL + "/" + endPoint, data);
-		if (res.status === 200) {
-			onSuccess();
+
+		onSuccess();
+		dispatch(
+			openSnackbar({
+				severity: "success",
+				message: "Sukses menambahkan data",
+			})
+		);
+
+		dispatch(setLoading(false));
+	} catch (error) {
+		const resError = (error as any).response;
+		if (resError.status === 409) {
 			dispatch(
 				openSnackbar({
-					severity: "success",
-					message: "Sukses menambahkan data",
+					severity: "error",
+					message: "Gagal Membuat form Form sudah ada",
 				})
 			);
 		} else {
 			dispatch(
 				openSnackbar({
 					severity: "error",
-					message: "Gagal menambahkan data (Bad Request 400)",
+					message: `Gagal menambah data ${resError.status}-${resError.statusText}`,
 				})
 			);
 		}
-		dispatch(setLoading(false));
-	} catch (error) {
-		dispatch(
-			openSnackbar({
-				severity: "error",
-				message: "Gagal menambah data (Internal Server Error 500)",
-			})
-		);
 	}
 	dispatch(setLoading(false));
 };
