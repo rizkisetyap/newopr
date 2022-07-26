@@ -27,7 +27,7 @@ const Dashboard = (props: Props) => {
 	return (
 		<SWRConfig value={{ fallback: props.fallback }}>
 			<AdminLayout title="Hello">
-				<Container maxWidth="xl" sx={{ py: 4 }}>
+				<Container maxWidth="xl" sx={{ py: 4, minHeight: "90vh" }}>
 					<Paper elevation={0} sx={{ p: 2 }}>
 						<div>
 							<Typography variant="h5" component="h1">
