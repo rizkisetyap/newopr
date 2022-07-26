@@ -28,11 +28,12 @@ import AdminLayout from "components/Layout/AdminLayout";
 import { BASE_URL } from "lib/constants";
 import { GetStaticPaths, GetStaticPathsContext, GetStaticProps } from "next";
 import { ParsedUrlQuery } from "querystring";
-import React, { useState } from "react";
+import React, { Fragment, useState } from "react";
 import moment from "moment";
 import "moment/locale/id";
 import Link from "next/link";
 import { Document, Page as DocPage, pdfjs } from "react-pdf";
+import { PDfViewer } from "components/DOCIS/PDFViewer";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 moment.locale("id");
 
@@ -40,9 +41,27 @@ interface Props {
 	historyFiles: any;
 }
 
+type Doc = {
+	filePath: string;
+	fileName: string;
+};
+
 const History = (props: Props) => {
 	const [open, setOpen] = useState(false);
+	const [selected, setSelected] = useState<Doc | null>();
 	const { historyFiles } = props;
+
+	const onOpen = (path: string, name: string) => {
+		setOpen(true);
+		setSelected({
+			fileName: name,
+			filePath: path,
+		});
+	};
+	const onClose = () => {
+		setOpen(false);
+		setSelected(null);
+	};
 	return (
 		<AdminLayout title="History">
 			<Container maxWidth="xl" sx={{ pt: 4 }}>
@@ -101,7 +120,11 @@ const History = (props: Props) => {
 													<SaveRounded />
 												</IconButton>
 												{/* </Link> */}
-												<IconButton color="error" title="view" onClick={() => setOpen(true)}>
+												<IconButton
+													color="error"
+													title="view"
+													onClick={() => onOpen(h.filePath, h.fileName)}
+												>
 													<VisibilityRounded />
 												</IconButton>
 												<IconButton
@@ -116,16 +139,12 @@ const History = (props: Props) => {
 											</div>
 										</div>
 									</AccordionDetails>
-									<PDFViewer
-										open={open}
-										onClose={() => setOpen(false)}
-										src={BASE_URL.replace("api", "") + h.filePath}
-										name={h.fileName}
-									/>
 								</Accordion>
 							))}
 					</div>
 				</div>
+
+				{selected && <PDfViewer open={open} onClose={onClose} doc={selected} />}
 				{/* </Paper> */}
 			</Container>
 		</AdminLayout>
@@ -139,6 +158,8 @@ type ResponseISR = {
 	path: string;
 	name: string;
 };
+
+// const ModalView = (props: I) => {};
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	const files: ResponseISR[] = await axios.get(BASE_URL + "/AdminIso/ISR").then((res) => res.data);
@@ -165,41 +186,4 @@ export const getStaticProps: GetStaticProps = async (ctx) => {
 		},
 		revalidate: 10,
 	};
-};
-
-interface ViewerProps {
-	src: string;
-	name: string;
-	open: boolean;
-	onClose: () => void;
-}
-
-const PDFViewer = (props: ViewerProps) => {
-	const { src, name, onClose, open } = props;
-	const [numOfPage, setNumOfPage] = useState<number | null>(null);
-	const onLoadDocSuccess = ({ numPages }: any) => {
-		setNumOfPage(numPages);
-	};
-
-	return (
-		<Dialog fullWidth open={open} onClose={onClose} maxWidth="md">
-			<DialogTitle>
-				<Typography className="border-b-2 border-spacing-2 border-b-orange-600 font-bold" component="h2">
-					{name}
-				</Typography>
-			</DialogTitle>
-			<DialogContent className="mx-auto">
-				<Document file={src} onLoadSuccess={onLoadDocSuccess}>
-					{[...new Array(numOfPage).fill(1)].map((x, idx) => (
-						<DocPage key={idx + 1} pageNumber={idx + 1} />
-					))}
-				</Document>
-			</DialogContent>
-			<DialogActions>
-				<Button variant="contained" color="warning" className="bg-orange-600" onClick={onClose}>
-					Close
-				</Button>
-			</DialogActions>
-		</Dialog>
-	);
 };

@@ -31,7 +31,6 @@ import axios from "axios";
 import HOC from "components/HOC/HOC";
 import { Document, Page, pdfjs } from "react-pdf";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 import AdminLayout from "components/Layout/AdminLayout";
 import { useFetch } from "data/Api";
 import API from "lib/ApiCrud";
@@ -44,12 +43,18 @@ import { setgid } from "process";
 import { IDokumenPendukung } from ".";
 import Link from "next/link";
 import AdminTabelForms, { RowsInterface } from "components/DOCIS/AdminTabelForms";
-import { Session } from "inspector";
 import { useSession } from "next-auth/react";
 import BackdropLoading from "components/MUI/BackdropLoading";
+import TableDocInti from "components/DOCIS/TableDocInti";
+import { PDfViewer } from "components/DOCIS/PDFViewer";
+import TableDocUtama from "components/DOCIS/TableDocUtama";
 
 interface Props {
 	fallback: IFallback;
+}
+interface Doc {
+	fileName: string;
+	filePath: string;
 }
 const actions = [
 	{ icon: <SaveRounded />, name: "Save" },
@@ -73,7 +78,18 @@ const Admin = (props: Props) => {
 	const { data: session, status } = useSession({ required: true });
 	// view
 	const [preview, setPreview] = useState(false);
-	const [doc, setDoc] = useState<IDokumenPendukung | null>(null);
+	const [doc, setDoc] = useState<Doc | null>(null);
+	const onPreviewOpen = (filePath: string, fileName: string) => {
+		setDoc({
+			fileName,
+			filePath,
+		});
+		setPreview(true);
+	};
+	const onPreviewClose = () => {
+		setDoc(null);
+		setPreview(false);
+	};
 
 	// list forms
 	const { data: Forms, error: FormsError } = useFetch<RowsInterface[]>("/RegisteredForms/getall");
@@ -221,13 +237,13 @@ const Admin = (props: Props) => {
 				<Divider />
 				<Container maxWidth="xl" className="pt-2">
 					{fileIsos && (
-						<Typography className="text-center mb-2" variant="h6">
-							List Dokumen Iso
+						<Typography className="text-center mb-2 underline underline-offset-2" variant="h6">
+							Dokumen Pendukung
 						</Typography>
 					)}
 					<Collapse in={openUnit} orientation="vertical">
 						{fileIsos && (
-							<Stack flexWrap="wrap" direction="row" spacing={2}>
+							<Stack flexWrap="wrap" direction="row" gap={2}>
 								{fileIsos.map((g: any) => (
 									<Card
 										className="px-4 py-2 text-gray-600"
@@ -258,7 +274,10 @@ const Admin = (props: Props) => {
 													<IconButton onClick={() => handleSave(g.filePath)} title="save">
 														<SaveRounded />
 													</IconButton>
-													<IconButton title="preview" onClick={() => setPreview(true)}>
+													<IconButton
+														title="preview"
+														onClick={() => onPreviewOpen(g.filePath, g.fileName)}
+													>
 														<Visibility />
 													</IconButton>
 													<Link passHref href={"/documentISO/history/" + g.id}>
@@ -266,7 +285,6 @@ const Admin = (props: Props) => {
 															<HistoryRounded />
 														</IconButton>
 													</Link>
-													<PDfViewer doc={g} onClose={() => setPreview(false)} open={preview} />
 												</div>
 											</div>
 										</div>
@@ -275,15 +293,37 @@ const Admin = (props: Props) => {
 							</Stack>
 						)}
 					</Collapse>
+					{doc && <PDfViewer doc={doc} onClose={onPreviewClose} open={preview} />}
 				</Container>
 				<Container maxWidth="xl" className="mb-8">
 					{/* Tabel Forms */}
 					<div className="bg-white mt-6 pb-6 rounded-md shadow-sm px-6">
 						<Box className="flex justify-between py-4">
-							<Typography variant="h6">List Forms</Typography>
-							<Typography>Create Form</Typography>
+							<Typography className="text-lg mb-4 font-semibold md:text-xl" variant="h6">
+								List Form Dokumen Inti &#38; Utama
+							</Typography>
 						</Box>
 						<AdminTabelForms data={Forms} loading={!Forms && !FormsError} />
+					</div>
+					<div className="bg-white mt-6 pb-6 rounded-md shadow-md px-6">
+						<Box className="py-4">
+							<Typography className="text-lg mb-4 font-semibold md:text-xl" variant="h6">
+								List Dokumen Inti
+							</Typography>
+							<div>
+								<TableDocInti />
+							</div>
+						</Box>
+					</div>
+					<div className="bg-white mt-6 pb-6 rounded-md shadow-sm px-6">
+						<Box className="py-4">
+							<Typography className="text-lg mb-4 font-semibold md:text-xl" variant="h6">
+								List Dokumen Utama
+							</Typography>
+							<div>
+								<TableDocUtama />
+							</div>
+						</Box>
 					</div>
 				</Container>
 			</AdminLayout>
@@ -305,40 +345,4 @@ export const getStaticProps: GetStaticProps = async () => {
 		},
 		revalidate: 10,
 	};
-};
-
-interface IPdfViewer {
-	open: boolean;
-	onClose: () => void;
-	doc: any;
-}
-const PDfViewer = (props: IPdfViewer) => {
-	// pdf view
-	const [documentPage, setDocumentPage] = useState(1);
-	const [numPageDoc, setNumPageDoc] = useState<number | null>(null);
-	const onLoadDocSuccess = ({ numPages }: any) => {
-		setNumPageDoc(numPages);
-	};
-	const endocedUri = BASE_URL.replace("api", "") + props.doc.filePath;
-	return (
-		<Dialog maxWidth="lg" fullWidth open={props.open} onClose={props.onClose}>
-			<DialogTitle>
-				<Typography className="border-b-2 border-spacing-2 border-b-orange-600 font-bold" component="h2">
-					{props.doc.fileName}
-				</Typography>
-			</DialogTitle>
-			<DialogContent className="mx-auto">
-				<Document file={endocedUri} onLoadSuccess={onLoadDocSuccess}>
-					{[...new Array(numPageDoc).fill(1)].map((el, i) => (
-						<Page key={i + 1} pageNumber={i + 1} />
-					))}
-				</Document>
-			</DialogContent>
-			<DialogActions>
-				<Button color="warning" className="bg-orange-600" onClick={props.onClose} variant="contained">
-					Close
-				</Button>
-			</DialogActions>
-		</Dialog>
-	);
 };

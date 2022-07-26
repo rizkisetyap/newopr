@@ -68,9 +68,14 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 			<Head>
 				<title>{title}| MyOPR</title>
 			</Head>
-			<div className="min-h-screen w-screen overflow-x-hidden">
+			<div className="min-h-[90vh] w-screen overflow-x-hidden">
 				<MuiNavbar />
 				<div className="h-full min-h-full">{children}</div>
+				<footer className="min-h-[10vh] grid place-items-center text-center bg-cyan-600">
+					<Typography className="text-white font-semibold" variant="body2">
+						BNI OPR &copy; {new Date().getFullYear()}
+					</Typography>
+				</footer>
 			</div>
 			<SwipeableDrawer
 				anchor="left"

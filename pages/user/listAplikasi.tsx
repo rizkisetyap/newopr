@@ -15,9 +15,11 @@ import {
 import axios from "axios";
 import HOC from "components/HOC/HOC";
 import AdminLayout from "components/Layout/AdminLayout";
+import BackdropLoading from "components/MUI/BackdropLoading";
 import { useFetch } from "data/Api";
 import { BASE_URL } from "lib/constants";
 import { GetStaticProps } from "next";
+import { useSession } from "next-auth/react";
 import React from "react";
 import { SWRConfig } from "swr";
 import { IFallback, ListApp } from "types/ModelInterface";
@@ -26,11 +28,17 @@ interface Props {
 	fallback: IFallback;
 }
 const Page = (props: Props) => {
-	const { data: apps } = useFetch<ListApp[]>("/listapps/getall");
+	const { data: session, status } = useSession({ required: true });
+	const gid = session?.user.employee.service?.groupId;
+
+	const { data: apps } = useFetch<ListApp[]>("/ListApps/GetByGroupId?groupId=" + gid);
+	if (status === "loading") {
+		return <BackdropLoading />;
+	}
 	return (
 		<SWRConfig value={{ fallback: props.fallback }}>
 			<AdminLayout title="List Apps">
-				<Container maxWidth="xl" sx={{ py: 4 }}>
+				<Container maxWidth="xl" sx={{ py: 4, minHeight: "90vh" }}>
 					<Paper elevation={0} sx={{ p: 2 }}>
 						<Typography className="text-lg font-bold md:text-xl" variant="h4" component="h1">
 							List Aplikasi OPR

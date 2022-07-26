@@ -21,7 +21,11 @@ export const fetcher = (path: string) => axios.get(BASE_URL + path).then((res) =
 // const API = ()
 
 export const useFetch = <T>(path: string): SWRResponse<T, any> => {
-	const res = useSWR(path, fetcher);
+	const res = useSWR(path, fetcher, {
+		revalidateIfStale: true,
+		revalidateOnFocus: true,
+		refreshInterval: 3000,
+	});
 
 	return res;
 };

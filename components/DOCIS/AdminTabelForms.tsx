@@ -39,6 +39,12 @@ const columns: GridColDef[] = [
 		flex: 1,
 	},
 	{
+		field: "kategoriDokumen",
+		headerName: "Kategori Dokumen",
+		minWidth: 120,
+		hideable: true,
+	},
+	{
 		field: "formName",
 		headerName: "Nama",
 		minWidth: 150,
@@ -48,12 +54,11 @@ const columns: GridColDef[] = [
 		field: "kelompok",
 		headerName: "Kelompok",
 		width: 100,
-		hide: true,
 	},
 	{
 		field: "layanan",
 		headerName: "Layanan",
-		width: 200,
+		width: 150,
 		valueGetter(params) {
 			return params.row.layanan.name;
 		},
@@ -62,6 +67,7 @@ const columns: GridColDef[] = [
 		field: "unit",
 		headerName: "Kelolaan",
 		width: 200,
+		hide: true,
 		valueGetter(params) {
 			return params.row.unit.name;
 		},
@@ -69,7 +75,8 @@ const columns: GridColDef[] = [
 	{
 		field: "fileIso",
 		headerName: "File Iso",
-		width: 100,
+		width: 70,
+		align: "center",
 		renderCell(params) {
 			if (!params.row.fileIso) {
 				return <CancelRounded color="error" />;
@@ -93,6 +100,7 @@ const columns: GridColDef[] = [
 		field: "options",
 		headerName: "Options",
 		width: 60,
+		align: "center",
 		renderCell(params) {
 			const [open, setOpen] = useState(false);
 

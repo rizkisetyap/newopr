@@ -17,7 +17,7 @@ const MuiNavbar = () => {
 		}).then(() => dispatch(logout()));
 	};
 	return (
-		<Box className="bg-slate-700 text-white">
+		<Box className="bg-cyan-600 text-white">
 			<Container maxWidth="xl" component="header" className="py-2">
 				<Box className="flex items-center">
 					<div className="inline-flex flex-1 gap-0 items-center">

@@ -44,6 +44,7 @@ import { openSnackbar } from "app/reducers/uiReducer";
 import { useSWRConfig } from "swr";
 import SaveButton from "components/Button/SaveButton";
 import columnsRegsiterForms from "../../components/GridColumns/ColumnRegisterForms";
+import TabelDokUtamaUser from "components/DOCIS/TabelDokUtamaUser";
 interface Props {
 	serviceId: number;
 	groupId: number;
@@ -143,10 +144,10 @@ const TPendukungColumns: GridColDef[] = [
 					<IconButton color="info" title="Edit" onClick={() => setOpenP(true)}>
 						<EditRounded />
 					</IconButton>
-					<IconButton onClick={handleDelete} color="error" title="Hapus">
+					{/* <IconButton onClick={handleDelete} color="error" title="Hapus">
 						<DeleteRounded />
-					</IconButton>
-					<IconButton onClick={() => setPreview(true)} color="info" title="View">
+					</IconButton> */}
+					<IconButton onClick={() => setPreview(true)} color="error" title="View">
 						<VisibilityRounded />
 					</IconButton>
 
@@ -192,19 +193,32 @@ const PDfViewer = (props: IPdfViewer) => {
 		</Dialog>
 	);
 };
-
+export interface IDokumenUtama {
+	id: number;
+	name: string;
+	revisi: number;
+	path: string;
+	createDate: string | null;
+	updateDate: string | null;
+	groupId: number;
+	isoCoreId: number;
+}
 const Page = (props: Props) => {
 	const { data: session, status } = useSession({ required: true });
 
 	const { data: IsoPendukung } = useFetch<IDokumenPendukung[]>(
-		"/DocumentIso/DokumenPendukung?GroupId=" + session?.user.employee.service?.groupId
+		"/DocumentIso/DokumenPendukung?GroupId=" + session?.user.employee.service?.groupId ?? ""
 	);
 	const { data: regForms } = useFetch<IDetailRegister[]>(
-		"/RegisteredForms/Filter?GroupId=" + session?.user.employee.service?.groupId
+		"/RegisteredForms/Filter?GroupId=" + session?.user.employee.service?.groupId ?? ""
 	);
-	const { data: currentUser } = useFetch<IEmploye>("/employee/by?id=" + session?.user?.npp ?? "");
-	const serviceId = currentUser?.serviceId ?? "";
-	const groupId = currentUser?.service?.groupId ?? "";
+	const { data: dokumenUtama } = useFetch<IDokumenUtama[]>(
+		"/DokumenUtama/Group?GroupId=" + session?.user.employee.service?.groupId ?? ""
+	);
+
+	// const { data: currentUser } = useFetch<IEmploye>("/employee/by?id=" + session?.user?.npp ?? "");
+	const serviceId = session?.user.employee.serviceId ?? "";
+	const groupId = session?.user.employee?.service?.groupId ?? "";
 	const [LKategoriDokumen, setLKategoriDokumen] = useState<IKategoriDocument[]>([]);
 	const [LJenisDokumen, setLJenisDokumen] = useState<IJenisDokumen[]>([]);
 	const [LForms, setLForms] = useState<ILForms[]>([]);
@@ -255,12 +269,18 @@ const Page = (props: Props) => {
 		setDataUploadIso(initialDataIso);
 	};
 	const handleSave = () => {
+		if ((!dataUploadIso.DetailRegisterId || !dataUploadIso.fileName) && kdokumenId !== 2) {
+			return alert("Nama dan No Form tidak boleh kosong!!!");
+		}
+		if (!isoFile) {
+			return alert("File harus dipilih!!!!");
+		}
 		if (kdokumenId == 2) {
 			const data: any = {
 				iSOCore: {
 					name: dataUploadIso.fileName,
-					unitId: unitId,
-					jenisDokumenId: jdokumenId,
+					groupId: session?.user.employee.service?.groupId,
+					jenisDocumentId: jdokumenId,
 				},
 				fileIso: isoFile,
 			};
@@ -277,7 +297,9 @@ const Page = (props: Props) => {
 	};
 	// listener change
 	const onKategoriDokumenChange = (e: SelectChangeEvent<string | number>) => {
-		setLJenisDokumen([]);
+		setJdokumenId(null);
+		setUnitId(null);
+		setDataUploadIso((old) => ({ ...old, DetailRegisterId: undefined }));
 		setKdokumenId(+e.target.value);
 		// if (kdokumenId) {
 		axios.get(BASE_URL + "/jenisdokumen/kategori?id=" + e.target.value).then((res) => {
@@ -287,6 +309,8 @@ const Page = (props: Props) => {
 		// }
 	};
 	const onJenisDokumenChange = (e: SelectChangeEvent<string | number>) => {
+		setUnitId(null);
+		setDataUploadIso((old) => ({ ...old, DetailRegisterId: undefined }));
 		setJdokumenId(+e.target.value);
 		// axios
 		// 	.get(
@@ -357,7 +381,7 @@ const Page = (props: Props) => {
 							<Chip label="Buat Form Baru" component="a" variant="outlined" color="secondary" />
 						</Link>
 						<Grid container spacing={2}>
-							<Grid item xs={12} md={5}>
+							<Grid item xs={12}>
 								<Box className="p-6 my-6 border">
 									<div className="flex justify-between md:inline-flex md:justify-between md:gap-4">
 										<Typography variant="h6" component="h6" className="text-lg font-semibold md:text-xl">
@@ -366,7 +390,7 @@ const Page = (props: Props) => {
 									</div>
 									{/* Input document */}
 									<Grid container spacing={2}>
-										<Grid item xs={12}>
+										<Grid item xs={12} md={6}>
 											<FormControl fullWidth size="small" margin="dense" variant="standard">
 												<InputLabel id="kdokumenId">Kategori Dokumen</InputLabel>
 												<Select
@@ -383,7 +407,7 @@ const Page = (props: Props) => {
 												</Select>
 											</FormControl>
 										</Grid>
-										<Grid item xs={12}>
+										<Grid item xs={12} md={6}>
 											<FormControl fullWidth size="small" margin="dense" variant="standard">
 												<InputLabel id="jdokumenId">Jenis Dokumen</InputLabel>
 												<Select
@@ -400,22 +424,27 @@ const Page = (props: Props) => {
 												</Select>
 											</FormControl>
 										</Grid>
-										{/* {kdokumenId === 3 && ( */}
-										<Grid item xs={12}>
-											<FormControl fullWidth size="small" margin="dense" variant="standard">
-												<InputLabel id="unitId">Unit / Kelola</InputLabel>
-												<Select name="unitId" labelId="unitId" value={unitId ?? ""} onChange={UnitChange}>
-													{LUnits.map((kd) => (
-														<MenuItem key={kd.id} value={kd.id}>
-															{kd.shortName} - {kd.name}
-														</MenuItem>
-													))}
-												</Select>
-											</FormControl>
-										</Grid>
-										{/* )} */}
 										{kdokumenId !== 2 && (
-											<Grid item xs={12}>
+											<Grid item xs={12} md={6}>
+												<FormControl fullWidth size="small" margin="dense" variant="standard">
+													<InputLabel id="unitId">Unit / Kelola</InputLabel>
+													<Select
+														name="unitId"
+														labelId="unitId"
+														value={unitId ?? ""}
+														onChange={UnitChange}
+													>
+														{LUnits.map((kd) => (
+															<MenuItem key={kd.id} value={kd.id}>
+																{kd.shortName} - {kd.name}
+															</MenuItem>
+														))}
+													</Select>
+												</FormControl>
+											</Grid>
+										)}
+										{kdokumenId !== 2 && (
+											<Grid item xs={12} md={6}>
 												<FormControl fullWidth margin="dense" variant="standard">
 													<InputLabel id="detailRegisterId">No Form</InputLabel>
 													<Select
@@ -436,7 +465,7 @@ const Page = (props: Props) => {
 												</FormControl>
 											</Grid>
 										)}
-										<Grid item xs={12}>
+										<Grid item xs={12} md={6}>
 											<TextField
 												required
 												fullWidth
@@ -450,7 +479,7 @@ const Page = (props: Props) => {
 											/>
 										</Grid>
 
-										<Grid item xs={12}>
+										<Grid item xs={12} md={6}>
 											<FileInput acccept="application/pdf" ref={inputFileRef} onChange={handleFileChange} />
 										</Grid>
 										<Grid item xs={12}>
@@ -462,7 +491,10 @@ const Page = (props: Props) => {
 							</Grid>
 							{/* Data grid forms */}
 							<Grid item xs={12}>
-								<Paper className="mt-6" sx={{ width: "100%", overflow: "auto" }}>
+								<Paper className="p-6" sx={{ width: "100%", overflow: "auto" }}>
+									<Typography variant="h6" component="h6" className="mb-4 text-lg font-semibold md:text-xl">
+										Daftar Form
+									</Typography>
 									{regForms && (
 										<BaseDataGrid
 											columns={columnsRegsiterForms}
@@ -480,8 +512,8 @@ const Page = (props: Props) => {
 							<Grid item xs={12}>
 								<Box className="p-6 my-6 border">
 									<div className="flex justify-between md:inline-flex md:justify-between md:gap-4">
-										<Typography component="h6" className="text-lg font-semibold md:text-xl" variant="h6">
-											List Document Pendukung
+										<Typography component="h6" className="text-lg mb-4 font-semibold md:text-xl" variant="h6">
+											Dokumen Pendukung & Dokumen Inti
 										</Typography>
 									</div>
 									{IsoPendukung && (
@@ -495,6 +527,16 @@ const Page = (props: Props) => {
 											onPageSizeChange={(s) => setTpendukungSize(s)}
 										/>
 									)}
+								</Box>
+							</Grid>
+							<Grid item xs={12}>
+								<Box className="p-6 my-6 border">
+									<div>
+										<Typography className="text-lg mb-4 font-semibold md:text-xl" component="h6" variant="h6">
+											Dokumen Utama
+										</Typography>
+									</div>
+									{dokumenUtama && <TabelDokUtamaUser dokumen={dokumenUtama} />}
 								</Box>
 							</Grid>
 						</Grid>

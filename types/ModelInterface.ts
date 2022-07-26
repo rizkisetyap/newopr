@@ -107,6 +107,10 @@ export interface ICoreISO extends IDate, ITemplate {
 	id?: number;
 	name?: string;
 	filePath?: string;
+	groupId?: number;
+	group?: IGroup;
+	jenisDocumentId?: number;
+	jenisDocument?: any;
 }
 
 export interface ISupportISO extends ITemplate {
@@ -252,4 +256,6 @@ export interface ListApp extends IDate {
 	id?: number;
 	name: string;
 	link: string;
+	groupId?: string;
+	group?: IGroup;
 }

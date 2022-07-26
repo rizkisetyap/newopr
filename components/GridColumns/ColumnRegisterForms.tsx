@@ -135,6 +135,7 @@ const ModalEdit = (props: ModalProps) => {
 	}, [data]);
 	const onSuccess = () => {
 		setTimeout(onClose, 500);
+		mutate("/DocumentIso/DokumenPendukung?GroupId=" + session?.user.employee.service?.groupId);
 		mutate("/RegisteredForms/Filter?GroupId=" + session?.user.employee.service?.groupId);
 		mutate("/RegisteredForms/getall");
 	};

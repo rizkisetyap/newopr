@@ -6,19 +6,21 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogTitle,
+	FormControl,
 	Grid,
 	IconButton,
+	InputLabel,
+	MenuItem,
 	Paper,
+	Select,
 	TextField,
 	Typography,
 } from "@mui/material";
-import KategoriTable from "components/MUI/Table/KategoryTable";
 import AdminLayout from "components/Layout/AdminLayout";
-import { ChangeEvent, FC, SyntheticEvent, useState } from "react";
+import { ChangeEvent, FC, useState } from "react";
 import HOC from "components/HOC/HOC";
-import Link from "next/link";
 import { AddCircleRounded, DeleteRounded, EditRounded } from "@mui/icons-material";
-import { ICategory, IFallback, ListApp } from "types/ModelInterface";
+import { IFallback, IGroup, ListApp } from "types/ModelInterface";
 import { useAppDispatch } from "app/hooks";
 import API from "lib/ApiCrud";
 import { useFetch } from "data/Api";
@@ -45,19 +47,22 @@ const columns: GridColDef[] = [
 		flex: 1,
 	},
 	{
+		field: "group",
+		headerName: "Kelompok",
+		width: 130,
+		valueGetter(params) {
+			console.log(params);
+			return params.row?.group?.groupName ?? "all";
+		},
+	},
+	{
 		field: "link",
 		headerName: "Alamat aplikasi",
 		minWidth: 250,
 		flex: 1,
 		renderCell(params) {
 			return (
-				<a
-					className="text-blue-600 underline"
-					rel="noreferrer"
-					// rel="noopener"
-					href={params.row.link}
-					target="_blank"
-				>
+				<a className="text-blue-600 underline" rel="noreferrer" href={params.row.link} target="_blank">
 					{params.row.link}
 				</a>
 			);
@@ -95,7 +100,7 @@ const Category: FC<Props> = ({ fallback }) => {
 		<SWRConfig value={{ fallback }}>
 			<AdminLayout title="List App ">
 				<Container maxWidth="xl" sx={{ p: 4 }}>
-					<Paper elevation={0} sx={{ p: 2 }}>
+					<Paper elevation={0} sx={{ p: 2, minHeight: "80vh" }}>
 						<Box display="flex" justifyContent="space-between">
 							<Typography className="text-gray-600" fontWeight={500} variant="h5">
 								List Aplikasi My OPR
@@ -141,6 +146,8 @@ interface IModalProps {
 function ModalForm(props: IModalProps) {
 	const { onClose, open, mutate } = props;
 	const [formData, setFormData] = useState(initForm);
+
+	const { data: groups } = useFetch<IGroup[]>("/groups/getall");
 	const dispatch = useAppDispatch();
 	const onSuccess = () => {
 		mutate("/listapps/getall");
@@ -172,7 +179,25 @@ function ModalForm(props: IModalProps) {
 							onChange={handleInputText}
 						/>
 					</Grid>
-					<Grid item xs={12} sm={6}>
+					<Grid item xs={12} md={6}>
+						<FormControl fullWidth margin="dense" variant="standard">
+							<InputLabel id="kelompokId">Kelompok</InputLabel>
+							{groups && (
+								<Select
+									name="groupId"
+									value={formData.groupId ?? ""}
+									onChange={(e) => setFormData((old) => ({ ...old, groupId: e.target.value }))}
+								>
+									{groups.map((g) => (
+										<MenuItem key={g.id} value={g.id}>
+											{g.groupName}
+										</MenuItem>
+									))}
+								</Select>
+							)}
+						</FormControl>
+					</Grid>
+					<Grid item xs={12}>
 						<TextField
 							fullWidth
 							margin="dense"
@@ -205,6 +230,8 @@ interface IModalPropsEdit {
 function ModalFormEdit(props: IModalPropsEdit) {
 	const { onClose, open, mutate } = props;
 	const [formData, setFormData] = useState(props.app);
+
+	const { data: groups } = useFetch<IGroup[]>("/groups/getall");
 	const dispatch = useAppDispatch();
 	const onSuccess = () => {
 		mutate("/listapps/getall");
@@ -236,7 +263,25 @@ function ModalFormEdit(props: IModalPropsEdit) {
 							onChange={handleInputText}
 						/>
 					</Grid>
-					<Grid item xs={12} sm={6}>
+					<Grid item xs={12} md={6}>
+						<FormControl fullWidth margin="dense" variant="standard">
+							<InputLabel id="kelompokId">Kelompok</InputLabel>
+							{groups && (
+								<Select
+									name="groupId"
+									value={formData.groupId ?? ""}
+									onChange={(e) => setFormData((old) => ({ ...old, groupId: e.target.value }))}
+								>
+									{groups.map((g) => (
+										<MenuItem key={g.id} value={g.id}>
+											{g.groupName}
+										</MenuItem>
+									))}
+								</Select>
+							)}
+						</FormControl>
+					</Grid>
+					<Grid item xs={12}>
 						<TextField
 							fullWidth
 							margin="dense"
