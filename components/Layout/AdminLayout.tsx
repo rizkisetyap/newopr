@@ -30,7 +30,7 @@ import MuiNavbar from "components/MUI/Navbar";
 import React, { FC, Fragment, ReactNode, useEffect, useState } from "react";
 import LinkItem from "components/MUI/LinkItem";
 import Head from "next/head";
-
+import { CssBaseline } from "@mui/material";
 import { AdminPanelSettingsRounded, ChevronRight, ExpandMore, ListAltRounded } from "@mui/icons-material";
 import ListRoundedIcon from "@mui/icons-material/ListRounded";
 import CircleRoundedIcon from "@mui/icons-material/CircleRounded";
@@ -64,13 +64,14 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 	}
 
 	return (
-		<div className="overflow-x-hidden bg-violet-100">
+		<div className="overflow-x-hidden bg-slate-100">
+			<CssBaseline />
 			<Head>
 				<title>{title}| MyOPR</title>
 			</Head>
-			<div className="min-h-[90vh] w-screen overflow-x-hidden">
+			<div>
 				<MuiNavbar />
-				<div className="h-full min-h-full">{children}</div>
+				<div>{children}</div>
 				<footer className="min-h-[10vh] grid place-items-center text-center bg-cyan-600">
 					<Typography className="text-white font-semibold" variant="body2">
 						BNI OPR &copy; {new Date().getFullYear()}

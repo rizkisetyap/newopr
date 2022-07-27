@@ -147,7 +147,6 @@ function ModalForm(props: IModalProps) {
 		setFormData(initForm);
 		setFile(null);
 		setImage(null);
-		setTimeout(onClose, 1000);
 	};
 	const handleSave = () => {
 		const data: FormINIT = {

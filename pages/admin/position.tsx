@@ -86,7 +86,6 @@ function ModalForm(props: IForm) {
 	const onSuccess = () => {
 		setFormData({ positionName: "" });
 		mutate("/positions/getall");
-		setTimeout(onClose, 1000);
 	};
 	const handleSave = () => {
 		API.handlePost<IPosition>(formData, onSuccess, dispatch, "positions");

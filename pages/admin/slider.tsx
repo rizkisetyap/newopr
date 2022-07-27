@@ -109,7 +109,6 @@ function ModalForm(props: IModalProps) {
 	};
 	const onSuccess = () => {
 		mutate("/sliders/getall");
-		setTimeout(onClose, 1000);
 	};
 	const handleSave = () => {
 		const data = {

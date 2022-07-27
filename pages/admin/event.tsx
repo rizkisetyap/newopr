@@ -8,8 +8,10 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogTitle,
+	FormControlLabel,
 	Grid,
 	Paper,
+	Switch,
 	TextField,
 	Typography,
 } from "@mui/material";
@@ -112,7 +114,7 @@ const initForm: IEvent = {
 	location: "",
 	startDate: new Date(),
 	endDate: new Date(),
-	isActive: true,
+	isActive: false,
 };
 function ModalForm(props: IModalForm) {
 	const { onClose, open, mutate } = props;
@@ -127,7 +129,6 @@ function ModalForm(props: IModalForm) {
 	const onSuccess = () => {
 		mutate("/events/getall");
 		setFormData(initForm);
-		setTimeout(onClose, 1000);
 	};
 	const handleSave = () => {
 		API.handlePost<IEvent>(formData, onSuccess, dispatch, "events");
@@ -195,6 +196,22 @@ function ModalForm(props: IModalForm) {
 							label="End Date"
 							onChange={(date) => setFormData((old) => ({ ...old, endDate: formatDate(date!) }))}
 							renderInput={(params) => <TextField variant="standard" margin="dense" fullWidth {...params} />}
+						/>
+					</Grid>
+					<Grid item xs={4}>
+						<FormControlLabel
+							control={
+								<Switch
+									checked={formData.isActive}
+									onChange={(e) =>
+										setFormData((old) => ({
+											...old,
+											isActive: e.target.checked,
+										}))
+									}
+								/>
+							}
+							label="Auto Publish"
 						/>
 					</Grid>
 				</Grid>

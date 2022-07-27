@@ -118,7 +118,6 @@ function ModalForm(props: ModalForm) {
 	const onSuccess = () => {
 		mutate("/services");
 		setFormData(initForm);
-		setTimeout(onClose, 500);
 	};
 	const handleSave = () => {
 		API.handlePost<IService>(formData, onSuccess, dispatch, "services");
