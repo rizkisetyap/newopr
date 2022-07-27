@@ -90,7 +90,7 @@ function ModalForm(props: IModalForm) {
 	const onSuccess = () => {
 		mutate("/officeLocation");
 		setFormData(initForm);
-		setTimeout(onClose, 1000);
+		// setTimeout(onClose, 1000);
 	};
 	const handleSave = () => {
 		API.handlePost<ILocation>(formData, onSuccess, dispatch, "OfficeLocation");

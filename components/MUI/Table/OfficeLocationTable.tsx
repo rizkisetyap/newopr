@@ -91,6 +91,7 @@ interface TableProps {
 }
 const OfficeTable: FC<TableProps> = ({ locations }) => {
 	const [pageSize, setPageSize] = useState(10);
+
 	return (
 		<Box overflow="hidden" minHeight={400}>
 			<BaseDataGrid

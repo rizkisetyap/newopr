@@ -26,11 +26,11 @@ const Dashboard = (props: Props) => {
 	}
 	return (
 		<SWRConfig value={{ fallback: props.fallback }}>
-			<AdminLayout title="Hello">
+			<AdminLayout title="Hello ">
 				<Container maxWidth="xl" sx={{ py: 4, minHeight: "90vh" }}>
 					<Paper elevation={0} sx={{ p: 2 }}>
 						<div>
-							<Typography variant="h5" component="h1">
+							<Typography className="text-lg md:text-xl" variant="h5" component="h1">
 								Welcome,{data?.user.firstName + " " + data?.user.lastName} ( {data?.user.kelompok} -{" "}
 								{data?.user.service} )
 							</Typography>

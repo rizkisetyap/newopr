@@ -12,6 +12,8 @@ import {
 	IconButton,
 	Grid,
 	TextField,
+	FormControlLabel,
+	Switch,
 } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import { DateTimePicker } from "@mui/x-date-pickers";
@@ -70,18 +72,18 @@ export const columnsAccount: GridColDef[] = [
 		field: "isActive",
 		headerName: "Status",
 		minWidth: 120,
-		flex: 1,
+		align: "center",
 		valueFormatter: (params) => {
 			if (params.value) {
-				return "Active";
+				return "Publish";
 			}
-			return "Not active";
+			return "Unpublish";
 		},
 		renderCell: (params) => {
 			return (
 				<Typography
 					className={`
-          rounded text-small text-white py-[4px] px-2
+          rounded text-xs text-white py-[4px] px-2
           ${params.row.isActive ? "bg-green-600" : "bg-orange-600"}
           `}
 					variant="body2"
@@ -185,8 +187,6 @@ function ModalForm(props: IModalForm) {
 		setTimeout(onClose, 1000);
 	};
 	const handleSave = () => {
-		console.log(formData);
-		return;
 		API.handleUpdate<IEvent>(formData, onSuccess, dispatch, "events");
 	};
 	return (
@@ -243,22 +243,35 @@ function ModalForm(props: IModalForm) {
 						/>
 					</Grid>
 					<Grid item xs={12} sm={6} md={4}>
-						<TextField
-							type="datetime-local"
-							disabled={isView}
+						<DateTimePicker
 							value={formData.startDate}
 							label="Start date"
-							onChange={(e) => setFormData((old) => ({ ...old, startDate: e.target.value }))}
-							// renderInput={(params) => <TextField margin="dense" fullWidth variant="standard" {...params} />}
+							onChange={(date) => setFormData((old) => ({ ...old, startDate: formatDate(date!) }))}
+							renderInput={(params) => <TextField margin="dense" fullWidth variant="standard" {...params} />}
 						/>
 					</Grid>
 					<Grid item xs={12} sm={6} md={4}>
 						<DateTimePicker
-							disabled={isView}
 							value={formData.endDate}
 							label="End Date"
 							onChange={(date) => setFormData((old) => ({ ...old, endDate: formatDate(date!) }))}
 							renderInput={(params) => <TextField variant="standard" margin="dense" fullWidth {...params} />}
+						/>
+					</Grid>
+					<Grid item xs={4}>
+						<FormControlLabel
+							control={
+								<Switch
+									checked={formData.isActive}
+									onChange={(e) =>
+										setFormData((old) => ({
+											...old,
+											isActive: e.target.checked,
+										}))
+									}
+								/>
+							}
+							label="Auto Publish"
 						/>
 					</Grid>
 				</Grid>

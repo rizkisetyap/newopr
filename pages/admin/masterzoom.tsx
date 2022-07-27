@@ -108,7 +108,6 @@ function ModalZoomAkun(props: IModalForm) {
 	const [formData, setFormData] = useState(modelZoom);
 	const onSuccess = () => {
 		setFormData(modelZoom);
-		setTimeout(onClose, 1000);
 	};
 	const handleSave = () => {
 		API.handlePost<IZoom>(formData, onSuccess, dispatch, "zoom");

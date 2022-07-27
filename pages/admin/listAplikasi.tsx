@@ -152,7 +152,6 @@ function ModalForm(props: IModalProps) {
 	const onSuccess = () => {
 		mutate("/listapps/getall");
 		setFormData(initForm);
-		setTimeout(onClose, 1000);
 	};
 	const handleSave = () => {
 		API.handlePost<ListApp>(formData, onSuccess, dispatch, "listapps");

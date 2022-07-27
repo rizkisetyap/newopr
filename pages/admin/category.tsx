@@ -88,7 +88,6 @@ function ModalForm(props: IModalProps) {
 	const onSuccess = () => {
 		mutate("/categories/getall");
 		setFormData(initForm);
-		setTimeout(onClose, 1000);
 	};
 	const handleSave = () => {
 		API.handlePost<ICategory>(formData, onSuccess, dispatch, "categories");

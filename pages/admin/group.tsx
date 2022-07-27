@@ -84,7 +84,6 @@ function ModalForm(props: IModalForm) {
 	const onSuccess = () => {
 		setFormData(initForm);
 		mutate("/groups/getall");
-		setTimeout(onClose, 1000);
 	};
 	const handleSave = () => {
 		API.handlePost<IGroup>(formData, onSuccess, dispatch, "groups");

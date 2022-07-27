@@ -129,7 +129,7 @@ const initForm: IEmploye = {
 	firstName: "",
 	lastName: "",
 	phoneNumber: "",
-	dateOfBirth: new Date("1990-01-01T00:00:00"),
+	dateOfBirth: new Date(),
 };
 const formLabels = Object.keys(initForm);
 function ModalAdd(props: IModalAdd) {
@@ -141,6 +141,7 @@ function ModalAdd(props: IModalAdd) {
 	const [formData, setFormData] = useState<IEmploye>(initForm);
 	const dispatch = useAppDispatch();
 	const [isAdmin, setIsAdmin] = useState(false);
+	const [isAdminISO, setIsAdminISO] = useState(false);
 	const [isUser, setIsUser] = useState(true);
 	const [isPeserta, setIsPeserta] = useState(true);
 	const { mutate } = useSWRConfig();
@@ -170,10 +171,15 @@ function ModalAdd(props: IModalAdd) {
 			id: "3",
 			roleName: "Peserta",
 		};
+		const roleAdminISO = {
+			id: "4",
+			roleName: "AdminISO",
+		};
 		const roles = [];
 		if (isAdmin) roles.push(roleAdmin);
 		if (isUser) roles.push(roleUser);
 		if (isPeserta) roles.push(rolePeserta);
+		if (isAdminISO) roles.push(roleAdminISO);
 		const fullName = formData.firstName + " " + formData.lastName;
 		const data: RegisterVM = { ...formData, roles, fullName };
 		API.handlePost<RegisterVM>(data, onSubmitSuccess, dispatch, "accounts/register");
@@ -181,12 +187,12 @@ function ModalAdd(props: IModalAdd) {
 	const onSubmitSuccess = () => {
 		mutate("/employee");
 		setFormData(initForm);
-		onClose();
+		// onClose();
 	};
 	return (
 		<Dialog fullWidth maxWidth="md" open={open} onClose={onClose}>
-			<DialogTitle>
-				<Typography className="font-bold text-gray-600" variant="h5" component="span">
+			<DialogTitle className="bg-slate-900 text-white">
+				<Typography className="font-bold" variant="h5" component="span">
 					New User
 				</Typography>
 			</DialogTitle>
@@ -327,12 +333,28 @@ function ModalAdd(props: IModalAdd) {
 									/>
 								}
 							/>
+							<FormControlLabel
+								label="Admin ISO"
+								control={
+									<Checkbox
+										checked={isAdminISO}
+										onChange={(e) => setIsAdminISO(e.target.checked)}
+										inputProps={{
+											"aria-label": "Peserta",
+										}}
+										size="medium"
+										sx={{
+											"&.MuiSvgIcon-root": { fontSize: 28 },
+										}}
+									/>
+								}
+							/>
 						</div>
 					</Grid>
 				</Grid>
 				{/* <TextField fullWidth margin="dense" label="firs" /> */}
 			</DialogContent>
-			<DialogActions>
+			<DialogActions className="bg-slate-900 text-white">
 				<Button className="bg-orange-600" color="warning" variant="contained" onClick={onClose}>
 					Cancel
 				</Button>
