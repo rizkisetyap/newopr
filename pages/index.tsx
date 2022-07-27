@@ -1,5 +1,5 @@
 import React, { FormEvent, useEffect, useState } from "react";
-import { Box, Button, Container, Grid, Paper, TextField, Typography } from "@mui/material";
+import { Box, Button, Container, FormControl, Grid, IconButton, Input, InputAdornment, InputLabel, OutlinedInput, Paper, TextField, Typography } from "@mui/material";
 import s from "styles/Login.module.scss";
 import cn from "classnames";
 
@@ -7,6 +7,7 @@ import HOC from "components/HOC/HOC";
 import { useRouter } from "next/router";
 import { signIn, SignInResponse, useSession } from "next-auth/react";
 import BackdropLoading from "components/MUI/BackdropLoading";
+import { VisibilityOff, Visibility } from "@mui/icons-material";
 
 const Home = () => {
 	const [npp, setNpp] = useState("");
@@ -15,6 +16,12 @@ const Home = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const { data: session, status } = useSession();
 	const router = useRouter();
+	const [show, setShow] = useState(false);
+
+	const handleClickShowPassword = () => {
+		setShow(s=> !s)
+	  };
+
 	useEffect(() => {
 		if (status === "loading") return;
 		if (status === "authenticated") {
@@ -25,6 +32,7 @@ const Home = () => {
 	if (status === "loading" || (status === "authenticated" && session)) {
 		return <BackdropLoading />;
 	}
+	
 	// console.log(status);
 	return (
 		<Box className={cn("h-screen bg-violet-700 grid place-items-center overflow-hidden", s.root)}>
@@ -63,7 +71,7 @@ const Home = () => {
 										/>
 									</Grid>
 									<Grid item xs={12}>
-										<TextField
+										{/* <TextField
 											value={password}
 											variant="standard"
 											label="Password"
@@ -72,7 +80,27 @@ const Home = () => {
 											fullWidth
 											margin="dense"
 											onChange={(e) => setPassword(e.target.value)}
-										/>
+										/> */}
+										<FormControl variant="standard" size="small" fullWidth margin="dense" >
+											<InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
+											<Input
+												id="outlined-adornment-password"
+												type={show ? 'text' : 'password'}
+												value={password}
+												onChange={(e) => setPassword(e.target.value)}
+												endAdornment={
+													<InputAdornment position="end">
+														<IconButton
+															aria-label="toggle password visibility"
+															onClick={handleClickShowPassword}
+															edge="end"
+														>
+															{show ? <VisibilityOff /> : <Visibility />}
+														</IconButton>
+													</InputAdornment>
+												}
+											/>
+										</FormControl>
 									</Grid>
 									<Grid mt={4} item xs={12}>
 										<Button
