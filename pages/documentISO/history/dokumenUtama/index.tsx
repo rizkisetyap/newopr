@@ -127,7 +127,14 @@ const HistoryDokumenUtama = () => {
 	}, [jdid, gid]);
 	return (
 		<AdminLayout title="hISTORY ">
-			<Container className="bg-white" maxWidth="xl">
+			<Container
+				className="bg-white"
+				sx={{
+					py: 4,
+					minHeight: "calc(100vh - 64px)",
+				}}
+				maxWidth="xl"
+			>
 				<div className="bg-white p-2 min-h-[90vh]">
 					<Typography variant="h4" component="h1" className="text-lg md:text-xl font-semibold mb-4">
 						History

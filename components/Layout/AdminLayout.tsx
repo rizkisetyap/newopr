@@ -54,6 +54,8 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 	const isAdmin = session?.user.accountRole.includes("Admin");
 	const isAdminIso = session?.user.accountRole.includes("AdminISO");
 
+	const isUserIso = session?.user.accountRole.includes("UserIso");
+
 	// useEffect(() => {
 	// 	if (status !== "authenticated") {
 	// 		router.push("/");
@@ -143,11 +145,13 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 								<LinkItem Icon={<EventAvailableIcon />} text="Event" href="/user/event" />
 								<LinkItem Icon={<ListAltRounded />} text="List Aplikasi OPR" href="/user/listAplikasi" />
 								<LinkItem Icon={<AddLocationAltRoundedIcon />} text="Lokasi Kantor" href="/user/lokasi" />
-								<LinkItem
-									Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
-									text="Document ISO"
-									href="/documentISO"
-								/>
+								{(isUserIso || isAdminIso) && (
+									<LinkItem
+										Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
+										text="Document ISO"
+										href="/documentISO"
+									/>
+								)}
 								{isAdminIso && (
 									<LinkItem
 										Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
