@@ -69,6 +69,7 @@ export interface IEmploye extends IDate, ITemplate {
 	service?: IService;
 	position?: IPosition;
 	dateOfBirth?: Date | string;
+	groupId?: number;
 }
 
 export interface IEvent extends IDate, ITemplate {

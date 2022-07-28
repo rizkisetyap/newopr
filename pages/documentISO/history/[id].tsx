@@ -64,7 +64,7 @@ const History = (props: Props) => {
 	};
 	return (
 		<AdminLayout title="History">
-			<Container maxWidth="xl" sx={{ pt: 4 }}>
+			<Container maxWidth="xl" sx={{ pt: 4, minHeight: "80vh" }}>
 				{/* <Paper elevation={0} sx={{ p: 2 }}> */}
 				<Typography variant="h4" component="h1" className="px-6">
 					History

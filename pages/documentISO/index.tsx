@@ -232,6 +232,7 @@ const Page = (props: Props) => {
 	const inputFileRef = useRef<HTMLInputElement>(null);
 	const [isoFile, setIsoFile] = useState<FILE | null>(null);
 	const dispatch = useAppDispatch();
+	const isUserIso = session?.user.accountRole.includes("UserIso");
 
 	// mutation
 	const { mutate } = useSWRConfig();
@@ -371,6 +372,13 @@ const Page = (props: Props) => {
 
 	if (status === "loading") {
 		return <BackdropLoading />;
+	}
+	if (!isUserIso) {
+		return (
+			<div className="grid h-screen w-screen place-items-center">
+				<Typography>Anda tidak memiliki hak akses untuk halaman Ini</Typography>
+			</div>
+		);
 	}
 	return (
 		<AdminLayout title="DOCIS">

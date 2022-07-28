@@ -21,8 +21,7 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
-import FileUploadRoundedIcon from "@mui/icons-material/FileUploadRounded";
+
 import AddCircleRoundedIcon from "@mui/icons-material/AddCircleRounded";
 import HOC from "components/HOC/HOC";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -36,7 +35,6 @@ import { GetStaticProps } from "next";
 import axios from "axios";
 import { BASE_URL, formatDate } from "lib/constants";
 import { SWRConfig, useSWRConfig } from "swr";
-import { useRef } from "react";
 import { DateTimePicker } from "@mui/x-date-pickers";
 
 interface Props {
@@ -129,7 +127,7 @@ const initForm: IEmploye = {
 	firstName: "",
 	lastName: "",
 	phoneNumber: "",
-	dateOfBirth: new Date(),
+	dateOfBirth: formatDate(new Date()),
 };
 const formLabels = Object.keys(initForm);
 function ModalAdd(props: IModalAdd) {
@@ -143,8 +141,9 @@ function ModalAdd(props: IModalAdd) {
 	const [isAdmin, setIsAdmin] = useState(false);
 	const [isAdminISO, setIsAdminISO] = useState(false);
 	const [isUser, setIsUser] = useState(true);
-	const [isPeserta, setIsPeserta] = useState(true);
+	const [isUserIso, setIsUserIso] = useState(false);
 	const { mutate } = useSWRConfig();
+	const { data: kelompoks } = useFetch<IGroup[]>("/groups/getall");
 	const handleInputText = (event: ChangeEvent<HTMLInputElement>) => {
 		setFormData((old) => ({
 			...old,
@@ -167,9 +166,9 @@ function ModalAdd(props: IModalAdd) {
 			id: "2",
 			roleName: "User",
 		};
-		const rolePeserta = {
+		const userIso = {
 			id: "3",
-			roleName: "Peserta",
+			roleName: "UserIso",
 		};
 		const roleAdminISO = {
 			id: "4",
@@ -178,10 +177,11 @@ function ModalAdd(props: IModalAdd) {
 		const roles = [];
 		if (isAdmin) roles.push(roleAdmin);
 		if (isUser) roles.push(roleUser);
-		if (isPeserta) roles.push(rolePeserta);
+		if (isUserIso) roles.push(userIso);
 		if (isAdminISO) roles.push(roleAdminISO);
 		const fullName = formData.firstName + " " + formData.lastName;
 		const data: RegisterVM = { ...formData, roles, fullName };
+
 		API.handlePost<RegisterVM>(data, onSubmitSuccess, dispatch, "accounts/register");
 	};
 	const onSubmitSuccess = () => {
@@ -234,6 +234,14 @@ function ModalAdd(props: IModalAdd) {
 						</FormControl>
 					</Grid>
 					<Grid item xs={12} sm={4}>
+						<DateTimePicker
+							label="Tanggal Lahir"
+							value={formData.dateOfBirth}
+							renderInput={(params) => <TextField variant="standard" fullWidth margin="dense" {...params} />}
+							onChange={(date) => setFormData((old) => ({ ...old, dateOfBirth: formatDate(date!) }))}
+						/>
+					</Grid>
+					<Grid item xs={12} sm={4}>
 						<FormControl variant="standard" fullWidth size="small" margin="dense">
 							<InputLabel id="jabatan">Jabatan</InputLabel>
 							<Select
@@ -253,35 +261,53 @@ function ModalAdd(props: IModalAdd) {
 							</Select>
 						</FormControl>
 					</Grid>
-					<Grid item xs={12} sm={4}>
-						<FormControl variant="standard" fullWidth size="small" margin="dense">
-							<InputLabel id="kelompok">Layanan</InputLabel>
-							<Select
-								variant="standard"
-								labelId="kelompok"
-								id="kelompok-select"
-								name="serviceId"
-								value={formData?.serviceId ?? ""}
-								onChange={handleInputSelect}
-							>
-								{isLoadingGroup && <MenuItem value={0}>Loading...</MenuItem>}
-								{group?.map((g) => (
-									<MenuItem key={g!.id} value={g.id}>
-										{g.name} ({g.group?.groupName})
-									</MenuItem>
-								))}
-								{/* <MenuItem value="1">Female</MenuItem> */}
-							</Select>
-						</FormControl>
-					</Grid>
-					<Grid item xs={12} sm={4}>
-						<DateTimePicker
-							label="Tanggal Lahir"
-							value={formData.dateOfBirth}
-							renderInput={(params) => <TextField variant="standard" fullWidth margin="dense" {...params} />}
-							onChange={(date) => setFormData((old) => ({ ...old, dateOfBirth: formatDate(date!) }))}
-						/>
-					</Grid>
+					{!isUserIso && (
+						<Grid item xs={12} sm={4}>
+							<FormControl variant="standard" fullWidth size="small" margin="dense">
+								<InputLabel id="groupId">Kelompok</InputLabel>
+								<Select
+									variant="standard"
+									labelId="groupId"
+									// id="kelompok-select"
+									name="groupId"
+									value={formData?.groupId ?? ""}
+									onChange={handleInputSelect}
+								>
+									{isLoadingGroup && <MenuItem value={0}>Loading...</MenuItem>}
+									{kelompoks?.map((g) => (
+										<MenuItem key={g!.id} value={g.id}>
+											{g.groupName}
+										</MenuItem>
+									))}
+									{/* <MenuItem value="1">Female</MenuItem> */}
+								</Select>
+							</FormControl>
+						</Grid>
+					)}
+					{isUserIso && (
+						<Grid item xs={12} sm={4}>
+							<FormControl variant="standard" fullWidth size="small" margin="dense">
+								<InputLabel id="kelompok">Layanan Dokumen ISO</InputLabel>
+								<Select
+									variant="standard"
+									labelId="kelompok"
+									id="kelompok-select"
+									name="serviceId"
+									value={formData?.serviceId ?? ""}
+									onChange={handleInputSelect}
+								>
+									{isLoadingGroup && <MenuItem value={0}>Loading...</MenuItem>}
+									{group?.map((g) => (
+										<MenuItem key={g!.id} value={g.id}>
+											{g.name} ({g.group?.groupName})
+										</MenuItem>
+									))}
+									{/* <MenuItem value="1">Female</MenuItem> */}
+								</Select>
+							</FormControl>
+						</Grid>
+					)}
+
 					<Grid item xs={12}>
 						<Typography>Kewenagan Modul</Typography>
 						<div>
@@ -318,13 +344,13 @@ function ModalAdd(props: IModalAdd) {
 								}
 							/>
 							<FormControlLabel
-								label="Peserta"
+								label="User Iso"
 								control={
 									<Checkbox
-										checked={isPeserta}
-										onChange={(e) => setIsPeserta(e.target.checked)}
+										checked={isUserIso}
+										onChange={(e) => setIsUserIso(e.target.checked)}
 										inputProps={{
-											"aria-label": "Peserta",
+											"aria-label": "User Iso",
 										}}
 										size="medium"
 										sx={{
