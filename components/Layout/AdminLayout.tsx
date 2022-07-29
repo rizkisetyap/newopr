@@ -53,7 +53,6 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 	// const isAdmin = true;
 	const isAdmin = session?.user.accountRole.includes("Admin");
 	const isAdminIso = session?.user.accountRole.includes("AdminISO");
-
 	const isUserIso = session?.user.accountRole.includes("UserIso");
 
 	// useEffect(() => {
@@ -139,28 +138,28 @@ const AdminLayout: FC<IProps> = ({ children, title }) => {
 								/>
 							</React.Fragment>
 						)}
-						{!isAdmin && (
-							<Fragment>
-								<LinkItem Icon={<ArticleIcon />} text="Konten" href="/user/content" />
-								<LinkItem Icon={<EventAvailableIcon />} text="Event" href="/user/event" />
-								<LinkItem Icon={<ListAltRounded />} text="List Aplikasi OPR" href="/user/listAplikasi" />
-								<LinkItem Icon={<AddLocationAltRoundedIcon />} text="Lokasi Kantor" href="/user/lokasi" />
-								{(isUserIso || isAdminIso) && (
-									<LinkItem
-										Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
-										text="Document ISO"
-										href="/documentISO"
-									/>
-								)}
-								{isAdminIso && (
-									<LinkItem
-										Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
-										text="Document ISO Admin"
-										href="/documentISO/admin"
-									/>
-								)}
-							</Fragment>
-						)}
+						{/* {!isAdmin && ( */}
+						<Fragment>
+							<LinkItem Icon={<ArticleIcon />} text="Konten" href="/user/content" />
+							<LinkItem Icon={<EventAvailableIcon />} text="Event" href="/user/event" />
+							<LinkItem Icon={<ListAltRounded />} text="List Aplikasi OPR" href="/user/listAplikasi" />
+							<LinkItem Icon={<AddLocationAltRoundedIcon />} text="Lokasi Kantor" href="/user/lokasi" />
+							{(isUserIso || isAdminIso) && (
+								<LinkItem
+									Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
+									text="Document ISO"
+									href="/documentISO"
+								/>
+							)}
+							{isAdminIso && (
+								<LinkItem
+									Icon={<InsertDriveFileRoundedIcon className="h-5 w-5" />}
+									text="Document ISO Admin"
+									href="/documentISO/admin"
+								/>
+							)}
+						</Fragment>
+						{/* )} */}
 					</List>
 				</Box>
 			</SwipeableDrawer>

@@ -29,7 +29,7 @@ interface Props {
 }
 const Page = (props: Props) => {
 	const { data: session, status } = useSession({ required: true });
-	const gid = session?.user.employee.service?.groupId;
+	const gid = session?.user.employee.service?.groupId ?? session?.user.employee.groupId;
 
 	const { data: apps } = useFetch<ListApp[]>("/ListApps/GetByGroupId?groupId=" + gid);
 	if (status === "loading") {

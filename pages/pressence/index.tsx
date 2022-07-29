@@ -96,78 +96,78 @@ const Absense = (props: Props) => {
 			</div>
 		);
 	}
-	return (
-		<div className="h-screen w-screen grid place-items-center">
-			<Typography>Login Gagal,silakan login ulang menggunakan aplikasi MyOPR mobile</Typography>
-		</div>
-	);
 	// return (
-	// 	<div className={cn("min-h-screen min-w-screen text-white", s.linear)}>
-	// 		<div className="flex w-full justify-between">
-	// 			<div>
-	// 				<div className="h-16 relative object-cover w-40">
-	// 					{/* <Image src={brand.src} blurDataURL={brand.blurDataURL} layout="fill" /> */}
-	// 				</div>
-	// 			</div>
-	// 			<div className="flex-1 bg-[#0096a4]"></div>
-	// 			<div className="inline-flex space-x-1">
-	// 				<div className="h-16 relative object-cover w-40">
-	// 					<Image src={img3.src} blurDataURL={img3.blurDataURL} layout="fill" />
-	// 				</div>
-	// 			</div>
-	// 		</div>
-	// 		<Container maxWidth="lg" className="mt-4">
-	// 			<Grid container spacing={6} justifyContent="center" alignItems="center" className="">
-	// 				<Grid item xs={12} sm={8} className="-order-1">
-	// 					<div className={cn("px-2 py-4 rounded-sm space-y-4")}>
-	// 						<Clock clockState={props.clockState} />
-	// 						<Paper
-	// 							sx={{
-	// 								maxWidth: "sm",
-	// 							}}
-	// 							className="px-4"
-	// 						>
-	// 							<Grid container width="100%" className="bg-white rounded-md mt-8 ml-0" spacing={2}>
-	// 								<Grid item xs={12}>
-	// 									<Typography variant="body1" className="text-center font-bold text-xl" component="h1">
-	// 										Hello, Silakan Absen manual
-	// 									</Typography>
-	// 									<TextField fullWidth margin="dense" variant="standard" name="npp" label="NPP" />
-	// 								</Grid>
-	// 								<Grid className="mb-10" item xs={12}>
-	// 									<TextField fullWidth margin="dense" variant="standard" name="npp" label="Paswword" />
-	// 								</Grid>
-	// 							</Grid>
-	// 						</Paper>
-	// 					</div>
-	// 				</Grid>
-	// 				<Grid item xs={12} sm={4}>
-	// 					<div className="text-white space-y-2">
-	// 						<Typography className="font-bold" variant="h4" component="p">
-	// 							{props.event?.eventTheme}
-	// 						</Typography>
-	// 						<Typography className="font-bold" variant="h3" component="p">
-	// 							{props.event?.eventName}
-	// 						</Typography>
-	// 						<Typography className="" variant="h6" component="p">
-	// 							{props.event?.organizer}
-	// 						</Typography>
-	// 						<Typography
-	// 							className="bg-white text-base text-gray-600 rounded-full px-6 py-3 max-w-max"
-	// 							variant="h5"
-	// 							component="p"
-	// 						>
-	// 							{props.qr?.dateLocation}
-	// 						</Typography>
-	// 						<Typography variant="body2" className="bg-white max-w-max text-slate-700 py-1 px-3 rounded-full">
-	// 							<span>{startDate}</span>- <span>{endDate}</span>
-	// 						</Typography>
-	// 					</div>
-	// 				</Grid>
-	// 			</Grid>
-	// 		</Container>
+	// 	<div className="h-screen w-screen grid place-items-center">
+	// 		<Typography>Login Gagal,silakan login ulang menggunakan aplikasi MyOPR mobile</Typography>
 	// 	</div>
 	// );
+	return (
+		<div className={cn("min-h-screen min-w-screen text-white", s.linear)}>
+			<div className="flex w-full justify-between">
+				<div>
+					<div className="h-16 relative object-cover w-40">
+						{/* <Image src={brand.src} blurDataURL={brand.blurDataURL} layout="fill" /> */}
+					</div>
+				</div>
+				<div className="flex-1 bg-[#0096a4]"></div>
+				<div className="inline-flex space-x-1">
+					<div className="h-16 relative object-cover w-40">
+						<Image src={img3.src} blurDataURL={img3.blurDataURL} layout="fill" />
+					</div>
+				</div>
+			</div>
+			<Container maxWidth="lg" className="mt-4">
+				<Grid container spacing={6} justifyContent="center" alignItems="center" className="">
+					<Grid item xs={12} sm={8} className="-order-1">
+						<div className={cn("px-2 py-4 rounded-sm space-y-4")}>
+							<Clock clockState={props.clockState} />
+							<Paper
+								sx={{
+									maxWidth: "sm",
+								}}
+								className="px-4"
+							>
+								<Grid container width="100%" className="bg-white rounded-md mt-8 ml-0" spacing={2}>
+									<Grid item xs={12}>
+										<Typography variant="body1" className="text-center font-bold text-xl" component="h1">
+											Hello, Silakan Absen manual
+										</Typography>
+										<TextField fullWidth margin="dense" variant="standard" name="npp" label="NPP" />
+									</Grid>
+									<Grid className="mb-10" item xs={12}>
+										<TextField fullWidth margin="dense" variant="standard" name="npp" label="Paswword" />
+									</Grid>
+								</Grid>
+							</Paper>
+						</div>
+					</Grid>
+					<Grid item xs={12} sm={4}>
+						<div className="text-white space-y-2">
+							<Typography className="font-bold" variant="h4" component="p">
+								{props.event?.eventTheme}
+							</Typography>
+							<Typography className="font-bold" variant="h3" component="p">
+								{props.event?.eventName}
+							</Typography>
+							<Typography className="" variant="h6" component="p">
+								{props.event?.organizer}
+							</Typography>
+							<Typography
+								className="bg-white text-base text-gray-600 rounded-full px-6 py-3 max-w-max"
+								variant="h5"
+								component="p"
+							>
+								{props.qr?.dateLocation}
+							</Typography>
+							<Typography variant="body2" className="bg-white max-w-max text-slate-700 py-1 px-3 rounded-full">
+								<span>{startDate}</span>- <span>{endDate}</span>
+							</Typography>
+						</div>
+					</Grid>
+				</Grid>
+			</Container>
+		</div>
+	);
 };
 
 export default Absense;
