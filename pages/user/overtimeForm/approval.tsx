@@ -29,7 +29,7 @@ const Approval = () => {
 	if (status === "loading") {
 		return <BackdropLoading />;
 	}
-	if (jabatan !== "MGR" && jabatan !== "Pemimpin Kelompok") {
+	if (jabatan !== "MGR" && jabatan !== "AVP") {
 		return (
 			<div className="h-screen w-screen grid place-items-center">
 				<h1>You are not authorized to access this page</h1>

@@ -207,6 +207,7 @@ const Page = (props: Props) => {
 									<div className="flex flex-col p-4">
 										{surats?.map((lembur) => (
 											<div
+												key={lembur.id}
 												className={cn("w-96 mx-auto  rounded-md shadow-md overflow-hidden", {
 													["bg-orange-200 text-orange-700 border-r-[5px] border-r-orange-500"]:
 														lembur.statusId === 1,
@@ -215,7 +216,7 @@ const Page = (props: Props) => {
 													["bg-red-200 border-r-[5px] text-red-700 border-red-600"]: lembur.statusId === 3,
 												})}
 											>
-												<div className="p-3" key={lembur.id}>
+												<div className="p-3">
 													<div className="relative">
 														<Typography className="absolute text-xs bg-orange-600 text-white p-1 rounded-sm top-0 right-0">
 															<span>{lembur.status}</span>

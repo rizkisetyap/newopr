@@ -284,7 +284,7 @@ function ModalAdd(props: IModalAdd) {
 							</FormControl>
 						</Grid>
 					)}
-					{isUserIso && (
+					{/* {isUserIso && (
 						<Grid item xs={12} sm={4}>
 							<FormControl variant="standard" fullWidth size="small" margin="dense">
 								<InputLabel id="kelompok">Layanan Dokumen ISO</InputLabel>
@@ -302,11 +302,11 @@ function ModalAdd(props: IModalAdd) {
 											{g.name} ({g.group?.groupName})
 										</MenuItem>
 									))}
-									{/* <MenuItem value="1">Female</MenuItem> */}
+							
 								</Select>
 							</FormControl>
 						</Grid>
-					)}
+					)} */}
 
 					<Grid item xs={12}>
 						<Typography>Kewenagan Modul</Typography>

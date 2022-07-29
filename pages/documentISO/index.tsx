@@ -36,10 +36,19 @@ import API from "lib/ApiCrud";
 import { BASE_URL } from "lib/constants";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import React, { ChangeEvent, useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, Fragment, useEffect, useRef, useState } from "react";
 import moment from "moment";
 moment.locale("id");
-import { FILE, FileIso, IEmploye, IKategoriDocument, IRegisteredForm, IUnit } from "types/ModelInterface";
+import {
+	FILE,
+	FileIso,
+	IEmploye,
+	IGroup,
+	IKategoriDocument,
+	IRegisteredForm,
+	IService,
+	IUnit,
+} from "types/ModelInterface";
 import { openSnackbar } from "app/reducers/uiReducer";
 import { useSWRConfig } from "swr";
 import SaveButton from "components/Button/SaveButton";
@@ -206,19 +215,16 @@ export interface IDokumenUtama {
 const Page = (props: Props) => {
 	const { data: session, status } = useSession({ required: true });
 
-	const { data: IsoPendukung } = useFetch<IDokumenPendukung[]>(
-		"/DocumentIso/DokumenPendukung?GroupId=" + session?.user.employee.service?.groupId ?? ""
-	);
-	const { data: regForms } = useFetch<IDetailRegister[]>(
-		"/RegisteredForms/Filter?GroupId=" + session?.user.employee.service?.groupId ?? ""
-	);
-	const { data: dokumenUtama } = useFetch<IDokumenUtama[]>(
-		"/DokumenUtama/Group?GroupId=" + session?.user.employee.service?.groupId ?? ""
-	);
-
 	// const { data: currentUser } = useFetch<IEmploye>("/employee/by?id=" + session?.user?.npp ?? "");
-	const serviceId = session?.user.employee.serviceId ?? "";
-	const groupId = session?.user.employee?.service?.groupId ?? "";
+	// const serviceId = session?.user.employee.serviceId ?? "";
+	const groupId = session?.user.employee?.groupId ?? "";
+	const { data: IsoPendukung } = useFetch<IDokumenPendukung[]>("/DocumentIso/DokumenPendukung?GroupId=" + groupId);
+	const { data: regForms } = useFetch<IDetailRegister[]>("/RegisteredForms/Filter?GroupId=" + groupId);
+	const { data: dokumenUtama } = useFetch<IDokumenUtama[]>("/DokumenUtama/Group?GroupId=" + groupId);
+
+	const { data: layanans } = useFetch<IService[]>("/Services/Group?GroupId=" + groupId);
+	const [serviceId, setServiceId] = useState<number | null>(null);
+
 	const [LKategoriDokumen, setLKategoriDokumen] = useState<IKategoriDocument[]>([]);
 	const [LJenisDokumen, setLJenisDokumen] = useState<IJenisDokumen[]>([]);
 	const [LForms, setLForms] = useState<ILForms[]>([]);
@@ -264,8 +270,8 @@ const Page = (props: Props) => {
 		}
 	};
 	const onSuccess = () => {
-		mutate("/DocumentIso/DokumenPendukung?GroupId=" + session?.user.employee.service?.groupId);
-		mutate("/RegisteredForms/Filter?GroupId=" + session?.user.employee.service?.groupId);
+		mutate("/DocumentIso/DokumenPendukung?GroupId=" + groupId);
+		mutate("/RegisteredForms/Filter?GroupId=" + groupId);
 		inputFileRef!.current!.value = "";
 		setDataUploadIso(initialDataIso);
 	};
@@ -280,7 +286,7 @@ const Page = (props: Props) => {
 			const data: any = {
 				iSOCore: {
 					name: dataUploadIso.fileName,
-					groupId: session?.user.employee.service?.groupId,
+					groupId: groupId,
 					jenisDocumentId: jdokumenId,
 				},
 				fileIso: isoFile,
@@ -290,7 +296,7 @@ const Page = (props: Props) => {
 		setIsoFile((file) => ({ ...file, name: dataUploadIso.fileName }));
 		const data = {
 			fileIso: isoFile,
-			fileRegisteredIso: dataUploadIso,
+			fileRegisteredIso: { ...dataUploadIso, serviceId },
 			npp: session?.user.npp,
 		};
 		// console.log(dataUploadIso);
@@ -354,10 +360,10 @@ const Page = (props: Props) => {
 				setLUnits(unts);
 			} catch (error) {}
 		};
-		if (kdokumenId !== 2) {
+		if (kdokumenId !== 2 && serviceId) {
 			getUnits();
 		}
-	}, [kdokumenId]);
+	}, [kdokumenId, serviceId]);
 	useEffect(() => {
 		const UpdateUnit = async () => {
 			try {
@@ -365,7 +371,7 @@ const Page = (props: Props) => {
 				setLUnits(newUnits);
 			} catch (error) {}
 		};
-		if (kdokumenId == 2) {
+		if (kdokumenId == 2 && groupId) {
 			UpdateUnit();
 		}
 	}, [kdokumenId]);
@@ -432,24 +438,56 @@ const Page = (props: Props) => {
 												</Select>
 											</FormControl>
 										</Grid>
+										{/* <Grid item xs={12} md={6}>
+											<FormControl fullWidth size="small" margin="dense" variant="standard">
+												<InputLabel id="GroupId">Kelompok</InputLabel>
+												<Select name="GroupId" labelId="GroupId" value={unitId ?? ""} onChange={UnitChange}>
+													{LUnits.map((kd) => (
+														<MenuItem key={kd.id} value={kd.id}>
+															{kd.shortName} - {kd.name}
+														</MenuItem>
+													))}
+												</Select>
+											</FormControl>
+										</Grid> */}
 										{kdokumenId !== 2 && (
-											<Grid item xs={12} md={6}>
-												<FormControl fullWidth size="small" margin="dense" variant="standard">
-													<InputLabel id="unitId">Unit / Kelola</InputLabel>
-													<Select
-														name="unitId"
-														labelId="unitId"
-														value={unitId ?? ""}
-														onChange={UnitChange}
-													>
-														{LUnits.map((kd) => (
-															<MenuItem key={kd.id} value={kd.id}>
-																{kd.shortName} - {kd.name}
-															</MenuItem>
-														))}
-													</Select>
-												</FormControl>
-											</Grid>
+											<Fragment>
+												<Grid item xs={12} md={6}>
+													<FormControl fullWidth size="small" margin="dense" variant="standard">
+														<InputLabel id="layananId">Layanan</InputLabel>
+														<Select
+															name="layananId"
+															labelId="layananId"
+															value={serviceId ?? ""}
+															onChange={(e) => setServiceId(+e.target.value)}
+														>
+															{layanans &&
+																layanans.map((kd) => (
+																	<MenuItem key={kd.id} value={kd.id}>
+																		{kd.shortName} - {kd.name}
+																	</MenuItem>
+																))}
+														</Select>
+													</FormControl>
+												</Grid>
+												<Grid item xs={12} md={6}>
+													<FormControl fullWidth size="small" margin="dense" variant="standard">
+														<InputLabel id="unitId">Unit / Kelola</InputLabel>
+														<Select
+															name="unitId"
+															labelId="unitId"
+															value={unitId ?? ""}
+															onChange={UnitChange}
+														>
+															{LUnits.map((kd) => (
+																<MenuItem key={kd.id} value={kd.id}>
+																	{kd.shortName === "PGO" ? "PPG" : kd.shortName} - {kd.name}
+																</MenuItem>
+															))}
+														</Select>
+													</FormControl>
+												</Grid>
+											</Fragment>
 										)}
 										{kdokumenId !== 2 && (
 											<Grid item xs={12} md={6}>
